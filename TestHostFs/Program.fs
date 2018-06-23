@@ -23,7 +23,7 @@ let main argv =
     |> Hosting.registerService<ITrendingEngine, TrendingEngineService>
     |> Hosting.registerService<ITrendingDataAccess, TrendingDataAccess>
     |> Hosting.registerFunction<ITrendCalculationFunction, TrendCalculation>
-    |> Hosting.registerRepository<SiteTrendingSeries>
+    |> Hosting.registerRepository<int, SiteTrendingSeries>
     |> ignore
 
     Hosting.startServices container

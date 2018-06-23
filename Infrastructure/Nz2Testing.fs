@@ -8,6 +8,7 @@ open System.ServiceModel.Dispatcher
 
 open Microsoft.FSharp.Reflection
 open Microsoft.Practices.Unity
+open System.Data.Entity
 
 [<KnownType("GetKnownTypes")>]
 type TestingContextId =
@@ -35,14 +36,20 @@ module Nz2Testing =
         match container.Resolve<TestingContext>().TestContextId with
         | Production -> 
             printfn "Creating concrete repository for %s" typedefof<'entity>.Name
-            DbSetRepository<'key, 'entity>() :> obj
+            // TODO: how do we get an actual DbSet?
+            let dbSet : DbSet<'entity> = null
+            DbSetRepository<'key, 'entity>(dbSet) :> obj
+
         | VolatileTest guid -> 
             printfn "Creating test repository for %s guid = %s" typedefof<'entity>.Name (guid.ToString())
+            let getKeyFunc (forEntity:'entity) = Unchecked.defaultof<'key>
             // TODO: populate the repository with test data?  or restore?
-            VolatileRepository<'key, 'entity>() :> obj
+            VolatileRepository<'key, 'entity>(getKeyFunc) :> obj
+
         | DurableTest guid ->  
             printfn "Creating test repository for %s guid = %s" typedefof<'entity>.Name (guid.ToString())
-            VolatileRepository<'key, 'entity>() :> obj
+            let getKeyFunc (forEntity:'entity) = Unchecked.defaultof<'key>
+            VolatileRepository<'key, 'entity>(getKeyFunc) :> obj
 
     let registerMessageInspectors (container:IUnityContainer) = 
         let createClientMessageInspector (childContainer:IUnityContainer) =

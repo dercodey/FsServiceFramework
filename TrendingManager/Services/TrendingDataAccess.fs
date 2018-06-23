@@ -13,7 +13,7 @@ open TrendingManager.Contracts
 
 [<ProvidedInterface(typedefof<ITrendingDataAccess>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
-type TrendingDataAccess(seriesRepo:IRepository<SiteTrendingSeries>) =
+type TrendingDataAccess(seriesRepo:IRepository<int, SiteTrendingSeries>) =
     interface ITrendingDataAccess with
         member this.GetTrendingSeries (seriesId:int) =
             let protocol = { 
@@ -28,7 +28,7 @@ type TrendingDataAccess(seriesRepo:IRepository<SiteTrendingSeries>) =
               Shift = [| 1.0; 2.0; 3.0 |] }
             // seriesRepo.Get<int>(seriesId)
         member this.UpdateTrendingSeries series =
-            seriesRepo.Update(series)
+            seriesRepo.Update(series) |> ignore
 
 module TrendingManager =
     let createTestData () = ()

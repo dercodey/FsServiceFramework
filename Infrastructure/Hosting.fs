@@ -52,9 +52,11 @@ module Hosting =
         let implementationType = typedefof<'implementation>
         container.RegisterType(contractType, implementationType) 
 
-    let registerRepository<'entityType> (container:IUnityContainer) : IUnityContainer =
-        container.RegisterType<IRepository<'entityType>>(
-            InjectionFactory(Nz2Testing.createRepositoryForTestContext<'entityType>)) 
+    let registerRepository<'key, 'entity 
+        when 'key : comparison 
+        and 'entity: not struct> (container:IUnityContainer) : IUnityContainer =
+        container.RegisterType<IRepository<'key, 'entity>>(
+            InjectionFactory(Nz2Testing.createRepositoryForTestContext<'key, 'entity>)) 
 
     let startServices (container:IUnityContainer) =
         container.ResolveAll<ServiceHost>()
