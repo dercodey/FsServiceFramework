@@ -60,6 +60,16 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Worklist.Contracts\Worklist.Contracts.fsproj">
+      <Name>Worklist.Contracts</Name>
+      <Project>{f5d9c309-b809-4f2a-b9bb-5fb2ae7f467a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Worklist.Services\Worklist.Services.fsproj">
+      <Name>Worklist.Services</Name>
+      <Project>{3b5d95a0-1778-4875-909d-6e1f113a5396}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="CommonServiceLocator">
       <HintPath>..\packages\CommonServiceLocator.1.4.0\lib\net45\CommonServiceLocator.dll</HintPath>
       <Private>True</Private>

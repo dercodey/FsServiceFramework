@@ -7,22 +7,18 @@ open Infrastructure
 
 [<ServiceContract>]
 [<IntranetPolicy>]
-type ITrendingManager =
-    [<OperationContract>] abstract GetSeries: siteId:int -> SiteTrendingSeries
-    [<OperationContract>] abstract UpdateSeries : series:SiteTrendingSeries -> SiteTrendingSeries
-    [<OperationContract>] abstract UpdateSiteOffset : series:SiteTrendingSeries -> int
+type IWorklistManager =
+    [<OperationContract>] abstract GetWorklistForStaff: staffId:int -> WorklistItems
+    [<OperationContract>] abstract CompleteWorklistItem: itemId:int -> unit
 
 [<ServiceContract>]
 [<ComponentPolicy>]
-type ITrendingEngine = 
-    [<OperationContract>] abstract CalculateTrendForSeries : series:SiteTrendingSeries -> SiteTrendingSeries
-    [<OperationContract>] abstract UpdateSiteOffset : series:SiteTrendingSeries -> int
-
-type ITrendCalculationFunction =
-    abstract Calculate : SiteTrendingSeries -> double
+type IWorklistEngine = 
+    [<OperationContract>] abstract GetWorklistForStaff: staffId:int -> WorklistItems
+    [<OperationContract>] abstract CompleteWorklistItem: itemId:int -> unit
 
 [<ServiceContract>]
 [<ComponentPolicy>]
-type ITrendingDataAccess = 
-    [<OperationContract>] abstract GetTrendingSeries : seriesId:int -> SiteTrendingSeries
-    [<OperationContract>] abstract UpdateTrendingSeries : series:SiteTrendingSeries -> unit
+type IWorklistDataAccess = 
+    [<OperationContract>] abstract GetTrendingSeries : seriesId:int -> WorklistItems
+    [<OperationContract>] abstract CompleteWorklistItem: itemId:int -> unit

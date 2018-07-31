@@ -1,29 +1,17 @@
 ﻿namespace WorklistManager.Contracts
 
+open System
 open System.Runtime.Serialization
 
 [<DataContract>]
 [<CLIMutable>]
-type RegistrationResult = { 
-    [<DataMember>] Matrix : double[]
-    [<DataMember>] Label : string }
+type WorklistItem = {
+    [<DataMember>] ImageAcquired : DateTime
+    [<DataMember>] ApprovedOn : DateTime option }
+
 
 [<DataContract>]
 [<CLIMutable>]
-type TrendingSeriesItem = {
-    [<DataMember>] AllResults : RegistrationResult list 
-    [<DataMember>] SelectedResult : RegistrationResult }
-
-[<DataContract>]
-[<CLIMutable>]
-type TrendingProtocol = { 
-    [<DataMember>] Algorithm : string
-    [<DataMember>] Tolerance : double }
-
-[<DataContract>]
-[<CLIMutable>]
-type SiteTrendingSeries = { 
-    [<DataMember>] Label : string
-    [<DataMember>] Protocol : TrendingProtocol
-    [<DataMember>] SeriesItems : TrendingSeriesItem list
-    [<DataMember>] Shift : double[] }
+type WorklistItems = { 
+    [<DataMember>] StaffId : int
+    [<DataMember>] AllStaffWorklistItems : WorklistItem list }

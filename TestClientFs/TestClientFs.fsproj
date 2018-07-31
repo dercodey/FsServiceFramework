@@ -60,6 +60,11 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\TrendingManager\Contracts\Contracts.fsproj">
+      <Name>Contracts</Name>
+      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <Reference Include="CommonServiceLocator">
       <HintPath>..\packages\CommonServiceLocator.1.4.0\lib\net45\CommonServiceLocator.dll</HintPath>
       <Private>True</Private>
@@ -87,11 +92,6 @@
     <ProjectReference Include="..\Infrastructure\Infrastructure.fsproj">
       <Name>Infrastructure</Name>
       <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\TrendingManager\Contracts\Contracts.fsproj">
-      <Name>Contracts</Name>
-      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
       <Private>True</Private>
     </ProjectReference>
     <Reference Include="System.ServiceModel" />
