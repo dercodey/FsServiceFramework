@@ -4,7 +4,8 @@ open System
 open System.ServiceModel
 
 open Infrastructure
-open WorklistManager.Contracts
+
+open Worklist.Contracts
 
 [<ProvidedInterface(typedefof<IWorklistManager>)>]
 [<RequiredInterface(typedefof<IWorklistEngine>)>]

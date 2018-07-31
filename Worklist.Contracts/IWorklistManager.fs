@@ -1,6 +1,5 @@
-﻿namespace WorklistManager.Contracts
+﻿namespace Worklist.Contracts
 
-open System.Runtime.Serialization
 open System.ServiceModel
 
 open Infrastructure
@@ -20,5 +19,5 @@ type IWorklistEngine =
 [<ServiceContract>]
 [<ComponentPolicy>]
 type IWorklistDataAccess = 
-    [<OperationContract>] abstract GetTrendingSeries : seriesId:int -> WorklistItems
+    [<OperationContract>] abstract GetWorklistForStaff : staffId:int -> WorklistItems
     [<OperationContract>] abstract CompleteWorklistItem: itemId:int -> unit

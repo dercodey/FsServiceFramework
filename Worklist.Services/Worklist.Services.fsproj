@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="WorklistManagerService.fs" />
+    <Compile Include="WorklistEngineService.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

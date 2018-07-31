@@ -5,7 +5,7 @@ open Infrastructure
 open TrendingManager.Contracts
 open TrendingManager
 
-open WorklistManager.Contracts
+open Worklist.Contracts
 open Worklist.Services
 
 [<EntryPoint>]
@@ -22,6 +22,7 @@ let main argv =
     |> Hosting.registerService<ITrendingDataAccess, TrendingDataAccess>
     |> Hosting.registerFunction<ITrendCalculationFunction, TrendCalculation>
     |> Hosting.registerService<IWorklistManager, WorklistManagerService>
+    |> Hosting.registerService<IWorklistEngine, WorklistEngineService>
     |> Hosting.registerRepository<int, SiteTrendingSeries>
     |> ignore
 

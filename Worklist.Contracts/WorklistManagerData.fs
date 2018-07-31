@@ -1,4 +1,4 @@
-﻿namespace WorklistManager.Contracts
+﻿namespace Worklist.Contracts
 
 open System
 open System.Runtime.Serialization
