@@ -1,9 +1,4 @@
 ﻿open System
-open System.Collections.Generic
-open System.ServiceModel
-
-open Microsoft.Practices.Unity
-open Microsoft.Practices.Unity.InterceptionExtension
 
 open Infrastructure
 

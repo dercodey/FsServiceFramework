@@ -10,6 +10,7 @@ open TrendingManager.Contracts
 [<RequiredInterface(typedefof<ITrendingDataAccess>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
 type TrendingEngineService(pm:IProxyManager, func:ITrendCalculationFunction) =
+    do Log.Out(Debug "Creating a TrendingEngineService.")
     interface ITrendingEngine with
         member this.CalculateTrendForSeries series =
             let trendResult = func.Calculate series

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Services", "TrendingManager\Services\Services.fsproj", "{88EB4774-51A2-4BF7-874C-009A0C3B3ADD}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Infrastructure", "Infrastructure\Infrastructure.fsproj", "{A2345BF0-8138-45DA-BABB-4A551A71CF5C}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TestClientFs", "TestClientFs\TestClientFs.fsproj", "{EDC907DD-C72B-4E31-B932-7C49F9D2B006}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Trending", "Trending", "{E231E0AA-913F-437E-BD9F-4E04A4BFEEB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,5 +50,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{88EB4774-51A2-4BF7-874C-009A0C3B3ADD} = {E231E0AA-913F-437E-BD9F-4E04A4BFEEB4}
+		{2BA2E92E-A3FB-4999-9FA2-0F9CA749A76B} = {E231E0AA-913F-437E-BD9F-4E04A4BFEEB4}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {338BF958-F36E-4A68-943D-640E74DFEED0}
 	EndGlobalSection
 EndGlobal

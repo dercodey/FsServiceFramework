@@ -2,16 +2,15 @@
 
 open System
 open System.ServiceModel
+
 open Infrastructure
-
-open MathNet.Numerics.LinearAlgebra
-
 open TrendingManager.Contracts
 
 [<ProvidedInterface(typedefof<ITrendingManager>)>]
 [<RequiredInterface(typedefof<ITrendingEngine>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
 type TrendingManagerService(pm:IProxyManager) =
+    do Log.Out(Debug "Creating a TrendingManagerService.")
     interface ITrendingManager with
         member this.GetSeries siteId =
             let protocol = { 

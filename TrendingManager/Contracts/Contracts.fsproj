@@ -8,7 +8,7 @@
     <ProjectGuid>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>DataContracts</RootNamespace>
-    <AssemblyName>Contracts</AssemblyName>
+    <AssemblyName>Trending.Contracts</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <Name>Contracts</Name>
     <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>

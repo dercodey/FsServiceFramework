@@ -36,6 +36,7 @@ type public Log() =
                 [<CallerMemberName>] ?memberName: string,
                 [<CallerFilePath>] ?path: string,
                 [<CallerLineNumber>] ?line: int) =
+        Console.WriteLine(message)
         use model = new LogDbModel()
         // model.Database.Create() |> ignore
         let newEntry = LogEntry("", message)
