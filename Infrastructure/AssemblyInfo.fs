@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.AssemblyInfo
+﻿namespace FsServiceFramework.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -7,8 +7,8 @@ open System.Runtime.InteropServices
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("Infrastructure")>]
-[<assembly: AssemblyDescription("")>]
+[<assembly: AssemblyTitle("FsServiceFramework")>]
+[<assembly: AssemblyDescription("F# based framework for WCF services")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("Microsoft")>]
 [<assembly: AssemblyProduct("Infrastructure")>]

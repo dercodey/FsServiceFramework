@@ -51,8 +51,14 @@
     <Compile Include="TrendingEngine.fs" />
     <Compile Include="TrendingDataAccess.fs" />
     <Content Include="packages.config" />
+    <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Infrastructure\FsServiceFramework.fsproj">
+      <Name>FsServiceFramework</Name>
+      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Contracts\Trending.Contracts.fsproj">
       <Name>Trending.Contracts</Name>
       <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
@@ -61,26 +67,22 @@
     <Reference Include="CommonServiceLocator">
       <HintPath>..\..\packages\Unity.5.8.6\lib\net46\CommonServiceLocator.dll</HintPath>
     </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\..\packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
-    <Reference Include="MathNet.Numerics">
-      <HintPath>..\..\packages\MathNet.Numerics.4.5.1\lib\net461\MathNet.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics.FSharp">
-      <HintPath>..\..\packages\MathNet.Numerics.FSharp.4.5.1\lib\net45\MathNet.Numerics.FSharp.dll</HintPath>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
-    <ProjectReference Include="..\..\Infrastructure\Infrastructure.fsproj">
-      <Name>Infrastructure</Name>
-      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <Reference Include="Unity.Abstractions">
       <HintPath>..\..\packages\Unity.5.8.6\lib\net46\Unity.Abstractions.dll</HintPath>
     </Reference>

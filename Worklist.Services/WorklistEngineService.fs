@@ -2,8 +2,7 @@
 
 open System
 open System.ServiceModel
-open Infrastructure
-
+open FsServiceFramework
 open Worklist.Contracts
 
 [<ProvidedInterface(typedefof<IWorklistEngine>)>]

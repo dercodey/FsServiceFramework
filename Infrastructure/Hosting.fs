@@ -1,4 +1,4 @@
-﻿namespace Infrastructure
+﻿namespace FsServiceFramework
 
 module Hosting =
 

@@ -1,6 +1,6 @@
 ﻿open System
 
-open Infrastructure
+open FsServiceFramework
 
 open Trending.Contracts
 open Trending.Services

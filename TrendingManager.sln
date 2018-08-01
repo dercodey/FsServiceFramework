@@ -9,7 +9,7 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Trending.Contracts", "Trend
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TestHostFs", "TestHostFs\TestHostFs.fsproj", "{2BB3B5C0-EB8E-4520-90F7-52F4D15C680A}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Infrastructure", "Infrastructure\Infrastructure.fsproj", "{A2345BF0-8138-45DA-BABB-4A551A71CF5C}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FsServiceFramework", "Infrastructure\FsServiceFramework.fsproj", "{A2345BF0-8138-45DA-BABB-4A551A71CF5C}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "TestClientFs", "TestClientFs\TestClientFs.fsproj", "{EDC907DD-C72B-4E31-B932-7C49F9D2B006}"
 EndProject

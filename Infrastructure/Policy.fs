@@ -1,4 +1,4 @@
-﻿namespace Infrastructure
+﻿namespace FsServiceFramework
 
 open System
 open System.Reflection

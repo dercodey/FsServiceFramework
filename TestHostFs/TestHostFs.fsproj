@@ -60,6 +60,11 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Infrastructure\FsServiceFramework.fsproj">
+      <Name>FsServiceFramework</Name>
+      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\TrendingManager\Contracts\Trending.Contracts.fsproj">
       <Name>Trending.Contracts</Name>
       <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
@@ -101,11 +106,6 @@
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml" />
-    <ProjectReference Include="..\Infrastructure\Infrastructure.fsproj">
-      <Name>Infrastructure</Name>
-      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <Reference Include="Unity.Abstractions">
       <HintPath>..\packages\Unity.Abstractions.3.3.0\lib\net45\Unity.Abstractions.dll</HintPath>
     </Reference>
@@ -114,9 +114,6 @@
     </Reference>
     <Reference Include="Unity.Container">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\Unity.Container.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Interception">
-      <HintPath>..\packages\Unity.Interception.5.5.3\lib\net46\Unity.Interception.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Interception.Configuration">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\Unity.Interception.Configuration.dll</HintPath>

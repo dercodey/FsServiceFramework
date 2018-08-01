@@ -3,7 +3,7 @@
 open System
 open System.ServiceModel
 
-open Infrastructure
+open FsServiceFramework
 open Trending.Contracts
 
 [<ProvidedInterface(typedefof<ITrendingManager>)>]

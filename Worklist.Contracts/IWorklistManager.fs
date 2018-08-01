@@ -2,7 +2,7 @@
 
 open System.ServiceModel
 
-open Infrastructure
+open FsServiceFramework
 
 [<ServiceContract>]
 [<IntranetPolicy>]

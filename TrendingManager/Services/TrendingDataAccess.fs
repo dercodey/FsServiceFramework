@@ -1,14 +1,7 @@
 ﻿namespace Trending.Services
 
-open System
 open System.ServiceModel
-
-open Microsoft.Practices.Unity
-
-open MathNet.Numerics.LinearAlgebra
-
-open Infrastructure
-
+open FsServiceFramework
 open Trending.Contracts
 
 [<ProvidedInterface(typedefof<ITrendingDataAccess>)>]

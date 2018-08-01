@@ -1,11 +1,11 @@
-﻿namespace Infrastructure
+﻿namespace FsServiceFramework
 
 open System
 open System.Collections.Generic
 open System.ServiceModel
 open System.ServiceModel.Channels
 
-open Infrastructure.Utility
+open FsServiceFramework.Utility
 
 open Unity.Interception.InterceptionBehaviors
 open Unity.Interception.PolicyInjection.Pipeline

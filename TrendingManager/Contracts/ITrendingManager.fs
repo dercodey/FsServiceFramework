@@ -3,7 +3,7 @@
 open System.Runtime.Serialization
 open System.ServiceModel
 
-open Infrastructure
+open FsServiceFramework
 
 [<ServiceContract>]
 [<IntranetPolicy>]

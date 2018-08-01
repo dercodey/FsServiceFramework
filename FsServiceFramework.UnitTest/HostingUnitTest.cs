@@ -1,5 +1,5 @@
-﻿using Infrastructure;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FsServiceFramework;
 using Trending.Contracts;
 using Trending.Services;
 
