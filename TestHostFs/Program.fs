@@ -5,8 +5,8 @@ open FsServiceFramework
 open Trending.Contracts
 open Trending.Services
 
-open Worklist.Contracts
-open Worklist.Services
+//open Worklist.Contracts
+//open Worklist.Services
 
 [<EntryPoint>]
 let main argv = 
@@ -21,8 +21,8 @@ let main argv =
     |> Hosting.registerService<ITrendingEngine, TrendingEngineService>
     |> Hosting.registerService<ITrendingDataAccess, TrendingDataAccess>
     |> Hosting.registerFunction<ITrendCalculationFunction, TrendCalculation>
-    |> Hosting.registerService<IWorklistManager, WorklistManagerService>
-    |> Hosting.registerService<IWorklistEngine, WorklistEngineService>
+    //|> Hosting.registerService<IWorklistManager, WorklistManagerService>
+    //|> Hosting.registerService<IWorklistEngine, WorklistEngineService>
     |> Hosting.registerRepository<int, SiteTrendingSeries>
     |> ignore
 

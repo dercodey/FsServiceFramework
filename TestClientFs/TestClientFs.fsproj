@@ -60,16 +60,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\FsServiceFramework.fsproj">
-      <Name>FsServiceFramework</Name>
-      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\TrendingManager\Contracts\Trending.Contracts.fsproj">
-      <Name>Trending.Contracts</Name>
-      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <Reference Include="CommonServiceLocator">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\CommonServiceLocator.dll</HintPath>
     </Reference>
@@ -110,6 +100,18 @@
     <Reference Include="Unity.ServiceLocation">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\Unity.ServiceLocation.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FsServiceFramework\FsServiceFramework.fsproj">
+      <Name>FsServiceFramework</Name>
+      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Trending\Trending.Contracts\Trending.Contracts.fsproj">
+      <Name>Trending.Contracts</Name>
+      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

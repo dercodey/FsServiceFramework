@@ -54,12 +54,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.ServiceModel" />
-    <Reference Include="Trending.Contracts">
-      <HintPath>..\TrendingManager\Contracts\bin\Debug\Trending.Contracts.dll</HintPath>
-    </Reference>
-    <Reference Include="Trending.Services">
-      <HintPath>..\TrendingManager\Services\bin\Debug\Trending.Services.dll</HintPath>
-    </Reference>
     <Reference Include="Unity.Abstractions, Version=3.3.0.0, Culture=neutral, PublicKeyToken=6d32ff45e0ccc69f, processorArchitecture=MSIL">
       <HintPath>..\packages\Unity.Abstractions.3.3.0\lib\net45\Unity.Abstractions.dll</HintPath>
     </Reference>
@@ -88,9 +82,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\FsServiceFramework.fsproj">
+    <ProjectReference Include="..\FsServiceFramework\FsServiceFramework.fsproj">
       <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
       <Name>FsServiceFramework</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Trending\Trending.Contracts\Trending.Contracts.fsproj">
+      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
+      <Name>Trending.Contracts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Trending\Trending.Services\Trending.Services.fsproj">
+      <Project>{88eb4774-51a2-4bf7-874c-009a0c3b3add}</Project>
+      <Name>Trending.Services</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

@@ -60,31 +60,6 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\FsServiceFramework.fsproj">
-      <Name>FsServiceFramework</Name>
-      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\TrendingManager\Contracts\Trending.Contracts.fsproj">
-      <Name>Trending.Contracts</Name>
-      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\TrendingManager\Services\Trending.Services.fsproj">
-      <Name>Trending.Services</Name>
-      <Project>{88eb4774-51a2-4bf7-874c-009a0c3b3add}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Worklist.Contracts\Worklist.Contracts.fsproj">
-      <Name>Worklist.Contracts</Name>
-      <Project>{f5d9c309-b809-4f2a-b9bb-5fb2ae7f467a}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\Worklist.Services\Worklist.Services.fsproj">
-      <Name>Worklist.Services</Name>
-      <Project>{3b5d95a0-1778-4875-909d-6e1f113a5396}</Project>
-      <Private>True</Private>
-    </ProjectReference>
     <Reference Include="CommonServiceLocator">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\CommonServiceLocator.dll</HintPath>
     </Reference>
@@ -127,6 +102,23 @@
     <Reference Include="Unity.ServiceLocation">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\Unity.ServiceLocation.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FsServiceFramework\FsServiceFramework.fsproj">
+      <Name>FsServiceFramework</Name>
+      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Trending\Trending.Contracts\Trending.Contracts.fsproj">
+      <Name>Trending.Contracts</Name>
+      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Trending\Trending.Services\Trending.Services.fsproj">
+      <Name>Trending.Services</Name>
+      <Project>{88eb4774-51a2-4bf7-874c-009a0c3b3add}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
