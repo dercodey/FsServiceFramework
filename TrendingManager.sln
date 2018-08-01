@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Services", "TrendingManager\Services\Services.fsproj", "{88EB4774-51A2-4BF7-874C-009A0C3B3ADD}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Trending.Services", "TrendingManager\Services\Trending.Services.fsproj", "{88EB4774-51A2-4BF7-874C-009A0C3B3ADD}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Contracts", "TrendingManager\Contracts\Contracts.fsproj", "{2BA2E92E-A3FB-4999-9FA2-0F9CA749A76B}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Trending.Contracts", "TrendingManager\Contracts\Trending.Contracts.fsproj", "{2BA2E92E-A3FB-4999-9FA2-0F9CA749A76B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHost", "TestHost\TestHost.csproj", "{28A54FDC-72D0-499A-86C0-C2E29A79E8E4}"
 EndProject

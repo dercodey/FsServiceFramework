@@ -61,13 +61,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TrendingManager\Contracts\Contracts.fsproj">
+    <ProjectReference Include="..\TrendingManager\Contracts\Trending.Contracts.fsproj">
       <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
-      <Name>Contracts</Name>
+      <Name>Trending.Contracts</Name>
     </ProjectReference>
-    <ProjectReference Include="..\TrendingManager\Services\Services.fsproj">
+    <ProjectReference Include="..\TrendingManager\Services\Trending.Services.fsproj">
       <Project>{88eb4774-51a2-4bf7-874c-009a0c3b3add}</Project>
-      <Name>Services</Name>
+      <Name>Trending.Services</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

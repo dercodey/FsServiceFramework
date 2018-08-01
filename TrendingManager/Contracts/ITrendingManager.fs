@@ -1,4 +1,4 @@
-﻿namespace TrendingManager.Contracts
+﻿namespace Trending.Contracts
 
 open System.Runtime.Serialization
 open System.ServiceModel

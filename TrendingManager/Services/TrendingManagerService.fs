@@ -1,10 +1,10 @@
-﻿namespace TrendingManager
+﻿namespace Trending.Services
 
 open System
 open System.ServiceModel
 
 open Infrastructure
-open TrendingManager.Contracts
+open Trending.Contracts
 
 [<ProvidedInterface(typedefof<ITrendingManager>)>]
 [<RequiredInterface(typedefof<ITrendingEngine>)>]

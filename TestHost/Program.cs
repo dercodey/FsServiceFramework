@@ -1,7 +1,8 @@
-﻿using TrendingManager;
-using TrendingManager.Contracts;
-using System;
+﻿using System;
 using System.ServiceModel;
+
+using Trending.Services;
+using Trending.Contracts;
 
 namespace TestHost
 {

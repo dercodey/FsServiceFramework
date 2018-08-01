@@ -1,4 +1,4 @@
-﻿namespace TrendingManager
+﻿namespace Trending.Services
 
 open System
 open System.ServiceModel
@@ -9,7 +9,7 @@ open MathNet.Numerics.LinearAlgebra
 
 open Infrastructure
 
-open TrendingManager.Contracts
+open Trending.Contracts
 
 [<ProvidedInterface(typedefof<ITrendingDataAccess>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]

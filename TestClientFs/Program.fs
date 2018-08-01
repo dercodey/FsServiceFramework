@@ -2,8 +2,7 @@
 
 open Infrastructure
 
-open TrendingManager.Contracts
-open TrendingManager
+open Trending.Contracts
 
 open Microsoft.Practices.Unity
 

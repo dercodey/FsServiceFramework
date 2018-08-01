@@ -60,8 +60,8 @@
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\TrendingManager\Contracts\Contracts.fsproj">
-      <Name>Contracts</Name>
+    <ProjectReference Include="..\TrendingManager\Contracts\Trending.Contracts.fsproj">
+      <Name>Trending.Contracts</Name>
       <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
       <Private>True</Private>
     </ProjectReference>

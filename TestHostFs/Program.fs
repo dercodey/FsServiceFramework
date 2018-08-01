@@ -2,8 +2,8 @@
 
 open Infrastructure
 
-open TrendingManager.Contracts
-open TrendingManager
+open Trending.Contracts
+open Trending.Services
 
 open Worklist.Contracts
 open Worklist.Services
