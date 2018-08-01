@@ -72,7 +72,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\FsServiceFramework.fsproj">
+    <ProjectReference Include="..\..\FsServiceFramework\FsServiceFramework.fsproj">
       <Name>FsServiceFramework</Name>
       <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
       <Private>True</Private>
