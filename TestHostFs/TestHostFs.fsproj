@@ -115,6 +115,9 @@
     <Reference Include="Unity.Container">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\Unity.Container.dll</HintPath>
     </Reference>
+    <Reference Include="Unity.Interception">
+      <HintPath>..\packages\Unity.Interception.5.5.3\lib\net46\Unity.Interception.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.Interception.Configuration">
       <HintPath>..\packages\Unity.5.8.6\lib\net46\Unity.Interception.Configuration.dll</HintPath>
     </Reference>
