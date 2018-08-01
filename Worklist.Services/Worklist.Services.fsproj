@@ -69,11 +69,8 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ValueTuple">
-      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
-      <Private>True</Private>
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Infrastructure\Infrastructure.fsproj">
       <Name>Infrastructure</Name>
       <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>

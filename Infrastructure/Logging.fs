@@ -4,7 +4,6 @@ open System
 open System.ComponentModel.DataAnnotations
 open System.Runtime.CompilerServices
 open System.Data.Entity
-open System.Linq
 
 type LogMessage = 
     | Debug of string

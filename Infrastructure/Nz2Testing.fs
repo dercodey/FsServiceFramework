@@ -1,13 +1,7 @@
 ﻿namespace Infrastructure 
 
 open System
-open System.Reflection
 open System.Runtime.Serialization
-open System.ServiceModel
-open System.ServiceModel.Dispatcher
-
-open Microsoft.FSharp.Reflection
-open Microsoft.Practices.Unity
 open System.Data.Entity
 
 [<KnownType("GetKnownTypes")>]
@@ -25,6 +19,10 @@ type TestingContext = {
     [<DataMember>] StartTimeStamp : DateTime }
 
 module Nz2Testing =
+
+    open Unity
+    open Unity.Injection
+    open System.ServiceModel.Dispatcher
 
     let createTestingContext() =
         { TestContextId = Production;

@@ -1,7 +1,8 @@
 ﻿namespace Infrastructure
 
 open System
-open Microsoft.Practices.Unity.InterceptionExtension
+open Unity.Interception.InterceptionBehaviors
+open Unity.Interception.PolicyInjection.Pipeline
 
 type PerformanceMonitorInterceptionBehavior() = 
     interface IInterceptionBehavior with

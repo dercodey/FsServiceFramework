@@ -1,17 +1,14 @@
 ﻿namespace Infrastructure
 
-open System
-open System.Collections.Generic
+module Hosting =
 
-open System.ServiceModel
-open System.ServiceModel.Channels
-open System.ServiceModel.Description
-open System.ServiceModel.Dispatcher
+    open System.ServiceModel
 
-open Microsoft.Practices.Unity
-open Microsoft.Practices.Unity.InterceptionExtension
-
-module Hosting = 
+    open Unity
+    open Unity.Lifetime
+    open Unity.Interception.ContainerIntegration
+    open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
+    open Unity.Injection
 
     // name used for the ProxyManager lifetime manager
     let nameProxyManagerLifetimeManager = "ProxyManager_LifetimeManager"

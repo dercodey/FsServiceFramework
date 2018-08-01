@@ -1,10 +1,8 @@
 ﻿open System
 
 open Infrastructure
-
 open Trending.Contracts
-
-open Microsoft.Practices.Unity
+open Unity
 
 [<EntryPoint>]
 let main argv = 

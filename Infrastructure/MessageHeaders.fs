@@ -1,16 +1,13 @@
 ﻿namespace Infrastructure 
 
-open System
-open System.Collections.Generic
-open System.ServiceModel
-open System.ServiceModel.Channels
-open System.ServiceModel.Description
-open System.ServiceModel.Dispatcher
-
-open Microsoft.FSharp.Reflection
-open Microsoft.Practices.Unity
-
 module MessageHeaders =
+
+    open System.ServiceModel
+    open System.ServiceModel.Channels
+    open System.ServiceModel.Description
+    open System.ServiceModel.Dispatcher
+
+    open Unity
 
     let updateHeaderWithContext<'t> (headers:MessageHeaders) (current:'t) =
         let headerName = typedefof<'t>.Name

@@ -2,8 +2,6 @@
 
 open System
 open System.Runtime.Serialization
-open System.ServiceModel.Dispatcher
-open Microsoft.Practices.Unity
 
 [<DataContract>]
 [<CLIMutable>]
@@ -14,6 +12,11 @@ type TraceContext = {
     [<DataMember>] EventTimeStamp : DateTime }
 
 module Tracing =
+
+    open System.ServiceModel.Dispatcher
+
+    open Unity
+    open Unity.Injection
 
     let createTraceContext () = 
         let now = DateTime.UtcNow

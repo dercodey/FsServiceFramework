@@ -3,9 +3,7 @@
 open System
 open System.Reflection
 open System.ServiceModel
-open System.ServiceModel.Channels
 open System.ServiceModel.Description
-open Microsoft.Practices.Unity
 
 // these are attributes to be applied to interfaces
 
@@ -38,6 +36,7 @@ type RequiredInterfaceAttribute(requiredType:Type) =
     member this.ContractType = requiredType
 
 module Policy = 
+    open Unity
 
     // retrieves a custom attribute by template
     let getCustomAttribute<'attributeType when 'attributeType :> Attribute> (fromType:Type) =

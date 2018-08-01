@@ -4,12 +4,12 @@ open System
 open System.Collections.Generic
 open System.ServiceModel
 open System.ServiceModel.Channels
-open System.ServiceModel.Description
-
-open Microsoft.Practices.Unity
-open Microsoft.Practices.Unity.InterceptionExtension
 
 open Infrastructure.Utility
+
+open Unity.Interception.InterceptionBehaviors
+open Unity.Interception.PolicyInjection.Pipeline
+open Unity
 
 type IProxyManager =
     abstract GetDurableContext : unit -> Guid

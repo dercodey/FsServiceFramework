@@ -2,14 +2,9 @@
 
 open System
 open System.Runtime.Serialization
-
 open System.ServiceModel
-open System.ServiceModel.Channels
-open System.ServiceModel.Description
-open System.ServiceModel.Dispatcher
 
-open Microsoft.Practices.Unity
-open Microsoft.Practices.Unity.InterceptionExtension
+open Unity
 
 [<DataContract>]
 [<CLIMutable>]
@@ -32,6 +27,9 @@ type StorageProviderInstanceContextExtension(container:IUnityContainer) =
         member this.Detach (owner:InstanceContext) = ()
 
 module Instance =
+    open System.ServiceModel.Dispatcher
+    open System.ServiceModel.Description
+    open System.ServiceModel.Channels
 
     // creates an instancecontext initializer that will register the UnityInstanceContextExtension
     //      for a new instancecontext
