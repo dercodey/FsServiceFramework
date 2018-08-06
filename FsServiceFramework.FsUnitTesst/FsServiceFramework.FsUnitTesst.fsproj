@@ -60,7 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
-      <HintPath>..\packages\FSharp.Core.4.2.3\lib\net45\FSharp.Core.dll</HintPath>
+      <HintPath>..\packages\FSharp.Core.4.5.2\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
     <Reference Include="FsUnit.MsTest">
       <HintPath>..\packages\Fs30Unit.MsTest.3.2.0\lib\net46\FsUnit.MsTest.dll</HintPath>
@@ -85,9 +85,29 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.ValueTuple">
-      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Unity.Abstractions">
+      <HintPath>..\packages\Unity.Abstractions.3.3.0\lib\net45\Unity.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FsServiceFramework\FsServiceFramework.fsproj">
+      <Name>FsServiceFramework</Name>
+      <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Trending\Trending.Contracts\Trending.Contracts.fsproj">
+      <Name>Trending.Contracts</Name>
+      <Project>{2ba2e92e-a3fb-4999-9fa2-0f9ca749a76b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Trending\Trending.Services\Trending.Services.fsproj">
+      <Name>Trending.Services</Name>
+      <Project>{88eb4774-51a2-4bf7-874c-009a0c3b3add}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
