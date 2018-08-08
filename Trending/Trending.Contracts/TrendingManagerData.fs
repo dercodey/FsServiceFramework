@@ -23,6 +23,7 @@ type TrendingProtocol = {
 [<DataContract>]
 [<CLIMutable>]
 type SiteTrendingSeries = { 
+    [<DataMember>] Id : int
     [<DataMember>] Label : string
     [<DataMember>] Protocol : TrendingProtocol
     [<DataMember>] SeriesItems : TrendingSeriesItem list

@@ -55,6 +55,11 @@ module Hosting =
         container.RegisterType<IRepository<'key, 'entity>>(
             InjectionFactory(Nz2Testing.createRepositoryForTestContext<'key, 'entity>)) 
 
+    let registerRepositoryInstance<'key, 'entity 
+        when 'key : comparison 
+        and 'entity: not struct> (repository:IRepository<'key, 'entity>) (container:IUnityContainer) : IUnityContainer =
+        container.RegisterInstance<IRepository<'key, 'entity>>(repository)
+
     let startServices (container:IUnityContainer) =
         container.ResolveAll<ServiceHost>()
         |> Seq.iter (fun host -> host.Open())

@@ -15,12 +15,35 @@ type ``test trending manager as example service`` () =
     
     [<TestInitialize>] 
     member ___.``set up hosting services.`` () = 
+        // construct a repository for test data
+        let repository = 
+            VolatileRepository<int, SiteTrendingSeries>(fun sts -> sts.Id) 
+                :> IRepository<int, SiteTrendingSeries>
+
+        // add a single test record
+        repository.Create 
+            { Id=seriesId;
+                Label=seriesId.ToString();
+                Protocol={ Algorithm = "trend"; Tolerance = 1.0 };
+                SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=[|1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;|]} };
+                                { AllResults = []; SelectedResult = {Label=""; Matrix=[|1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;|]} } ];
+                Shift = [| 1.0; 2.0; 3.0 |]; } |> ignore
+
+        repository.Create 
+            { Id=seriesId+1;
+                Label=(seriesId+1).ToString();
+                Protocol={ Algorithm = "trend"; Tolerance = 1.0 };
+                SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=[|1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;|]} };
+                                { AllResults = []; SelectedResult = {Label=""; Matrix=[|1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;|]} } ];
+                Shift = [| 1.0; 2.0; 3.0 |]; } |> ignore
+
+        // register services and IoC container
         container 
         |> Hosting.registerService<ITrendingManager, TrendingManagerService>
         |> Hosting.registerService<ITrendingEngine, TrendingEngineService>
         |> Hosting.registerService<ITrendingDataAccess, TrendingDataAccess>
         |> Hosting.registerFunction<ITrendCalculationFunction, TrendCalculation>
-        |> Hosting.registerRepository<int, SiteTrendingSeries>
+        |> Hosting.registerRepositoryInstance<int, SiteTrendingSeries> repository
         |> Hosting.startServices 
 
     [<TestCleanup>] 
@@ -30,6 +53,7 @@ type ``test trending manager as example service`` () =
 
     [<TestMethod>] 
     member ___.``when series get is called should have correct value.`` () =
+
         use pm = new ProxyManager(container)
         let ipm = pm :> IProxyManager
         use proxyContext = ipm.GetTransientContext()
@@ -37,7 +61,8 @@ type ``test trending manager as example service`` () =
         let series = proxy.GetSeries(seriesId)
         series |> should not' (be null)
         series |> should equal 
-                    { Label=seriesId.ToString();
+                    { Id=seriesId;
+                        Label=seriesId.ToString();
                         Protocol={ Algorithm = "trend"; 
                                         Tolerance = 1.0 };
                         SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=[|1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;1.0;0.0;0.0;0.0;|]} };
@@ -46,11 +71,15 @@ type ``test trending manager as example service`` () =
 
     [<TestMethod>] 
     member ___.``when series is updated without change it should be the same is the original.`` () =
+
         use pm = new ProxyManager(container)
         let ipm = pm :> IProxyManager
         use proxyContext = ipm.GetTransientContext()
         let proxy = ipm.GetProxy<ITrendingManager>()
+
         let series = proxy.GetSeries(seriesId)
-        let updatedSeries = proxy.UpdateSeries(series);
-        updatedSeries |> should equal series
+        let updatedSeries = { series with Shift=[|2.0;3.0;4.0|] }
+        let returnedSeries = proxy.UpdateSeries(updatedSeries);
+        returnedSeries |> should equal updatedSeries
+        returnedSeries |> should not' (equal series)
 

@@ -35,20 +35,23 @@ type VolatileRepository<'key, 'entity
         and 'entity: not struct>
             (getKeyFunc:'entity->'key) =
 
-    let entityMap = Map.empty<'key, 'entity>
+    let mutable entityMap = Map.empty<'key, 'entity>
 
     interface IRepository<'key, 'entity> with
         member this.Get (key:'key) = 
             entityMap.Item key
         member this.Create (entity:'entity) = 
             let key = getKeyFunc entity
-            entityMap.Add(key, entity) |> ignore
+            entityMap <- entityMap.Add(key, entity)
             entity
         member this.Delete (entity:'entity) = 
             let key = getKeyFunc entity
-            entityMap.Remove(key) |> ignore
+            entityMap <- entityMap.Remove(key)
             true
         member this.Update (entity:'entity) =
+            let key = getKeyFunc entity
+            entityMap <- entityMap.Remove(key)
+            entityMap <- entityMap.Add(key, entity)
             entity
 
 type IUnitOfWork =
