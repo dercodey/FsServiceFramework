@@ -1,7 +1,14 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
+
+using Unity;
+
 using FsServiceFramework;
 using Trending.Contracts;
 using Trending.Services;
+
+using Microsoft.FSharp.Core;
+using Microsoft.FSharp.Collections;
 
 namespace FsServiceFramework.UnitTest
 {
@@ -11,41 +18,57 @@ namespace FsServiceFramework.UnitTest
         [TestMethod]
         public void TestTrendingManagerHosting()
         {
+            var repository =
+                    new VolatileRepository<int, SiteTrendingSeries>(
+                        FuncConvert.ToFSharpFunc<SiteTrendingSeries, int>(sts => sts.Id)) 
+                as IRepository<int, SiteTrendingSeries>;
+
+            int seriesId = 1;
+            var matrix = new double[] 
+                { 1.0, 0.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0, 0.0,
+                    0.0, 0.0, 1.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0 };
+
+            repository.Create(
+                new SiteTrendingSeries(
+                    id: seriesId, 
+                    label: seriesId.ToString(),
+                    protocol: new TrendingProtocol(algorithm: "trend", tolerance: 1.0),
+                    seriesItems: ListModule.OfSeq(new List<TrendingSeriesItem>
+                    {
+                        new TrendingSeriesItem(
+                            allResults: FSharpList<RegistrationResult>.Empty, 
+                            selectedResult: new RegistrationResult(matrix: matrix, label: ""))
+                    }), 
+                    shift: new double[] { 1.0, 2.0, 3.0 }));
+            
             var container = Hosting.createHostContainer();
             Hosting.registerService<ITrendingManager, TrendingManagerService>(container);
             Hosting.registerService<ITrendingEngine, TrendingEngineService>(container);
             Hosting.registerService<ITrendingDataAccess, TrendingDataAccess>(container);
             Hosting.registerFunction<ITrendCalculationFunction, TrendCalculation>(container);
-            Hosting.registerRepository<int, SiteTrendingSeries>(container);
+            Hosting.registerRepositoryInstance(repository, container);
 
             Hosting.startServices(container);
 
-            using (var pm = new ProxyManager(container))
+            var ipm = container.Resolve<IProxyManager>();
+            using (var proxyContext = ipm.GetTransientContext())
             {
-                var ipm = pm as IProxyManager;
-                using (var proxyContext = ipm.GetTransientContext())
-                {
-                    var proxy = ipm.GetProxy<ITrendingManager>();
-                    var seriesId = 1;
-                    var series = proxy.GetSeries(seriesId);
-                    Assert.IsTrue(series != null);
-                    var updatedSeries = proxy.UpdateSeries(series);
-                    Assert.IsTrue(updatedSeries.Equals(series));
-                }
+                var proxy = ipm.GetProxy<ITrendingManager>();
+                var series = proxy.GetSeries(seriesId);
+                Assert.IsTrue(series != null);
+                var updatedSeries = proxy.UpdateSeries(series);
+                Assert.IsTrue(updatedSeries.Equals(series));
             }
 
-            using (var pm = new ProxyManager(container))
+            using (var proxyContext = ipm.GetTransientContext())
             {
-                var ipm = pm as IProxyManager;
-                using (var proxyContext = ipm.GetTransientContext())
-                {
-                    var proxy = ipm.GetProxy<ITrendingManager>();
-                    var seriesId = 2;
-                    var series = proxy.GetSeries(seriesId);
-                    Assert.IsTrue(series != null);
-                    var updatedSeries = proxy.UpdateSeries(series);
-                    Assert.IsTrue(updatedSeries.Equals(series));
-                }
+                var proxy = ipm.GetProxy<ITrendingManager>();
+                var series = proxy.GetSeries(seriesId);
+                Assert.IsTrue(series != null);
+                var updatedSeries = proxy.UpdateSeries(series);
+                Assert.IsTrue(updatedSeries.Equals(series));
             }
 
             Hosting.stopServices(container);
