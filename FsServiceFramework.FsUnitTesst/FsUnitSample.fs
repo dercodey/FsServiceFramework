@@ -16,9 +16,13 @@ type ``test trending manager as example service`` () =
 
     // values for testing
     let seriesId = 1    
+
+    // create an identity matrix
     let diag i = if i/4 = i%4 then 1. else 0.
     let matrix = Array.init 16 diag
-    let shift = Array.init 3 (fun i -> float i)
+
+    // function to create a shift that correlates with the id
+    let shiftForId (id:int) = Array.init 3 (fun x -> float(x+id))
 
     let createAndPopulateRepository () =
         // construct a repository for test data
@@ -26,22 +30,18 @@ type ``test trending manager as example service`` () =
             VolatileRepository<int, SiteTrendingSeries>(fun sts -> sts.Id) 
                 :> IRepository<int, SiteTrendingSeries>
 
-        // add first test record
-        repository.Create 
-            { Id=seriesId;
-                Label=seriesId.ToString();
+        // helper to create STS record for a given index
+        let createSiteTrendingSeriesForIndex i =
+            { Id=i; Label=i.ToString();
                 Protocol={ Algorithm = "trend"; Tolerance = 1.0 };
                 SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} };
                                 { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ];
-                Shift = shift; } |> ignore
-        // add second (dummy) test record
-        repository.Create 
-            { Id=seriesId+1;
-                Label=(seriesId+1).ToString();
-                Protocol={ Algorithm = "trend"; Tolerance = 1.0 };
-                SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} };
-                                { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ];
-                Shift = shift; } |> ignore
+                Shift = (shiftForId i) }
+
+        // add some test record
+        { seriesId..seriesId+2 }
+        |> Seq.map createSiteTrendingSeriesForIndex            
+        |> Seq.iter (fun sts -> repository.Create(sts) |> ignore)
         repository
     
     [<TestInitialize>] 
@@ -62,6 +62,7 @@ type ``test trending manager as example service`` () =
     member ___.``stop hosting services`` () =
         container
         |> Hosting.stopServices 
+        container.Dispose()
 
     [<TestMethod>] 
     member ___.``when series get is called should have correct value.`` () =
@@ -78,7 +79,7 @@ type ``test trending manager as example service`` () =
                                         Tolerance = 1.0 };
                         SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} };
                                         { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ];
-                        Shift = shift; }
+                        Shift = (shiftForId seriesId) }
 
     [<TestMethod>] 
     member ___.``when series is updated without change it should be the same is the original.`` () =
@@ -88,7 +89,7 @@ type ``test trending manager as example service`` () =
         let proxy = proxyManager.GetProxy<ITrendingManager>()
 
         let series = proxy.GetSeries(seriesId)
-        let updatedSeries = { series with Shift=[|2.0;3.0;4.0|] }
+        let updatedSeries = { series with Shift=series.Shift |> Array.map (fun x -> x + 1.0)  }
         let returnedSeries = proxy.UpdateSeries(updatedSeries);
         returnedSeries |> should equal updatedSeries
         returnedSeries |> should not' (equal series)
