@@ -14,18 +14,22 @@ let main argv =
             { Nz2Testing.createTestingContext() with TestContextId = VolatileTest (Guid.NewGuid()) })
     |> ignore
 
-    let proxyAndCall (seriesId:int) (proxyManager:IProxyManager) =
-        use proxyContext = proxyManager.GetTransientContext()
-        let proxy = proxyManager.GetProxy<ITrendingManager>()
+    use proxyManager = new ProxyManager(container)
+    let ipm = proxyManager :> IProxyManager
+
+    let proxyAndCall (seriesId:int) =
+        use proxyContext = ipm.GetTransientContext()
+
+        let proxy = ipm.GetProxy<ITrendingManager>()
         let series = proxy.GetSeries(seriesId)
         let updatedSeries = proxy.UpdateSeries(series)
-        let proxy = proxyManager.GetProxy<ITrendingDataAccess>()
-        let series = proxy.GetTrendingSeries seriesId
-        printfn "proxy.GetSeries = %A" series
 
-    using (new ProxyManager(container)) (proxyAndCall 10)
-    using (new ProxyManager(container)) (proxyAndCall 20)
-    using (new ProxyManager(container)) (proxyAndCall 30)
+        let proxy = ipm.GetProxy<ITrendingDataAccess>()
+        let seriesFromData = proxy.GetTrendingSeries seriesId
+        printfn "proxy.GetTrendingSeries = %A" seriesFromData
+
+    { 1..3 }
+    |> Seq.iter proxyAndCall
 
     Console.ReadLine() |> ignore
     0 // return an integer exit code

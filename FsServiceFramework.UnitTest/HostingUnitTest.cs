@@ -35,12 +35,13 @@ namespace FsServiceFramework.UnitTest
                     id: seriesId, 
                     label: seriesId.ToString(),
                     protocol: new TrendingProtocol(algorithm: "trend", tolerance: 1.0),
-                    seriesItems: ListModule.OfSeq(new List<TrendingSeriesItem>
-                    {
-                        new TrendingSeriesItem(
-                            allResults: FSharpList<RegistrationResult>.Empty, 
-                            selectedResult: new RegistrationResult(matrix: matrix, label: ""))
-                    }), 
+                    seriesItems: ListModule.OfSeq(
+                        new List<TrendingSeriesItem>
+                        {
+                            new TrendingSeriesItem(
+                                allResults: FSharpList<RegistrationResult>.Empty, 
+                                selectedResult: new RegistrationResult(matrix: matrix, label: ""))
+                        }), 
                     shift: new double[] { 1.0, 2.0, 3.0 }));
             
             var container = Hosting.createHostContainer();

@@ -119,6 +119,16 @@
       <Project>{88eb4774-51a2-4bf7-874c-009a0c3b3add}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\Worklist\Worklist.Contracts\Worklist.Contracts.fsproj">
+      <Name>Worklist.Contracts</Name>
+      <Project>{f5d9c309-b809-4f2a-b9bb-5fb2ae7f467a}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Worklist\Worklist.Services\Worklist.Services.fsproj">
+      <Name>Worklist.Services</Name>
+      <Project>{3b5d95a0-1778-4875-909d-6e1f113a5396}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
