@@ -30,11 +30,12 @@ let main argv =
 
         // helper to create STS record for a given index
         let createSiteTrendingSeriesForIndex i =
-            { Id=i; Label=i.ToString();
-                Protocol={ Algorithm = "trend"; Tolerance = 1.0 };
+            SiteTrendingSeries(Id = i,
+                Label = i.ToString(),
+                Protocol = TrendingProtocol(Algorithm = "trend", Tolerance = 1.0 ),
                 SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} };
-                                { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ];
-                Shift = (shiftForId i) }
+                                { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ],
+                Shift = (shiftForId i))
 
         // add some test record
         { seriesId..seriesId+2 }

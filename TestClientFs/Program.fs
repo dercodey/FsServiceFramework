@@ -26,7 +26,11 @@ let main argv =
 
         let proxy = ipm.GetProxy<ITrendingDataAccess>()
         let seriesFromData = proxy.GetTrendingSeries seriesId
-        printfn "proxy.GetTrendingSeries = %A" seriesFromData
+        printfn "proxy.GetTrendingSeries = %A" 
+            (seriesFromData.Id, seriesFromData.Label, 
+                seriesFromData.Protocol.Algorithm, seriesFromData.Protocol.Tolerance, 
+                seriesFromData.SeriesItems,
+                seriesFromData.Shift)
 
     { 1..3 }
     |> Seq.iter proxyAndCall

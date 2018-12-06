@@ -20,30 +20,37 @@ namespace FsServiceFramework.UnitTest
         {
             var repository =
                     new VolatileRepository<int, SiteTrendingSeries>(
-                        FuncConvert.ToFSharpFunc<SiteTrendingSeries, int>(sts => sts.Id)) 
+                        FuncConvert.ToFSharpFunc<SiteTrendingSeries, int>(sts => sts.Id))
                 as IRepository<int, SiteTrendingSeries>;
 
             int seriesId = 1;
-            var matrix = new double[] 
+            var matrix = new double[]
                 { 1.0, 0.0, 0.0, 0.0,
                     0.0, 1.0, 0.0, 0.0,
                     0.0, 0.0, 1.0, 0.0,
                     0.0, 0.0, 0.0, 1.0 };
 
             repository.Create(
-                new SiteTrendingSeries(
-                    id: seriesId, 
-                    label: seriesId.ToString(),
-                    protocol: new TrendingProtocol(algorithm: "trend", tolerance: 1.0),
-                    seriesItems: ListModule.OfSeq(
+                new SiteTrendingSeries()
+                {
+                    Id = seriesId,
+                    Label = seriesId.ToString(),
+                    Protocol = new TrendingProtocol()
+                    {
+                        Algorithm = "trend",
+                        Tolerance = 1.0,
+                    },
+                    SeriesItems = ListModule.OfSeq(
                         new List<TrendingSeriesItem>
                         {
                             new TrendingSeriesItem(
-                                allResults: FSharpList<RegistrationResult>.Empty, 
+                                allResults: FSharpList<RegistrationResult>.Empty,
                                 selectedResult: new RegistrationResult(matrix: matrix, label: ""))
-                        }), 
-                    shift: new double[] { 1.0, 2.0, 3.0 }));
-            
+                        }),
+                    Shift = new double[] { 1.0, 2.0, 3.0 }
+                });
+
+
             var container = Hosting.createHostContainer();
             Hosting.registerService<ITrendingManager, TrendingManagerService>(container);
             Hosting.registerService<ITrendingEngine, TrendingEngineService>(container);

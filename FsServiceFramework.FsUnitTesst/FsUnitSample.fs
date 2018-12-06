@@ -32,11 +32,12 @@ type ``test trending manager as example service`` () =
 
         // helper to create STS record for a given index
         let createSiteTrendingSeriesForIndex i =
-            { Id=i; Label=i.ToString();
-                Protocol={ Algorithm = "trend"; Tolerance = 1.0 };
+            SiteTrendingSeries(Id = i,
+                Label = i.ToString(),
+                Protocol = TrendingProtocol(Algorithm = "trend", Tolerance = 1.0 ),
                 SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} };
-                                { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ];
-                Shift = (shiftForId i) }
+                                { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ],
+                Shift = (shiftForId i))
 
         // add some test record
         { seriesId..seriesId+2 }
@@ -73,13 +74,14 @@ type ``test trending manager as example service`` () =
         let series = proxy.GetSeries(seriesId)
         series |> should not' (be null)
         series |> should equal 
-                    { Id=seriesId;
-                        Label=seriesId.ToString();
-                        Protocol={ Algorithm = "trend"; 
-                                        Tolerance = 1.0 };
+                    (SiteTrendingSeries(Id=seriesId,
+                        Label=seriesId.ToString(),
+                        Protocol=TrendingProtocol(Algorithm = "trend",
+                                        Tolerance = 1.0),
                         SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} };
-                                        { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ];
-                        Shift = (shiftForId seriesId) }
+                                        { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ],
+                        Shift = (shiftForId seriesId)))
+
 
     [<TestMethod>] 
     member ___.``when series is updated without change it should be the same is the original.`` () =
@@ -89,7 +91,8 @@ type ``test trending manager as example service`` () =
         let proxy = proxyManager.GetProxy<ITrendingManager>()
 
         let series = proxy.GetSeries(seriesId)
-        let updatedSeries = { series with Shift=series.Shift |> Array.map (fun x -> x + 1.0)  }
+        let updatedSeries = series
+        updatedSeries.Shift <- series.Shift |> Array.map (fun x -> x + 1.0)
         let returnedSeries = proxy.UpdateSeries(updatedSeries);
         returnedSeries |> should equal updatedSeries
         returnedSeries |> should not' (equal series)
