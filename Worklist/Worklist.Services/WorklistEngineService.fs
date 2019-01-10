@@ -2,8 +2,20 @@
 
 open System
 open System.ServiceModel
+
 open FsServiceFramework
+open FsServiceFramework.Utility
 open Worklist.Contracts
+
+module WorklistEngineService =
+
+    { new IWorklistEngine with
+        member this.GetWorklistForStaff staffId =
+            (fun (da:IWorklistDataAccess) -> da.GetWorklistForStaff(staffId))  |> bindAndCall
+        member this.CompleteWorklistItem itemId =
+            (fun (da:IWorklistDataAccess) (df:IWorklistDataAccess) 
+                -> da.CompleteWorklistItem(itemId))  |> bindAndCall bindAndCall }
+    |> ignore
 
 [<ProvidedInterface(typedefof<IWorklistEngine>)>]
 [<RequiredInterface(typedefof<IWorklistDataAccess>)>]
@@ -12,8 +24,11 @@ type WorklistEngineService(pm:IProxyManager) =
     do Log.Out(Debug "Creating a WorklistEngineService.")
     interface IWorklistEngine with
         member this.GetWorklistForStaff staffId =
-            let proxy = pm.GetProxy<IWorklistDataAccess>()
-            proxy.GetWorklistForStaff staffId
+            (fun (da:IWorklistDataAccess) -> da.GetWorklistForStaff(staffId)) 
+            |> bindAndCall
         member this.CompleteWorklistItem itemId =
-            let proxy = pm.GetProxy<IWorklistDataAccess>()
-            proxy.CompleteWorklistItem itemId
+            (fun (da:IWorklistDataAccess) (df:IWorklistDataAccess) 
+                -> da.CompleteWorklistItem(itemId)) 
+            |> bindAndCall bindAndCall
+
+            

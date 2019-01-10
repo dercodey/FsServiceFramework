@@ -74,12 +74,17 @@ type VolatileUnitOfWork(keyService:IKeyService) =
         member this.Save () = 0
         member this.Rollback () = 0
 
+type OperationObject<'req, 'res> =
+    abstract member Call : 'req->'res
+
 module Utility = 
 
     open System
     open System.Reflection
     open System.Collections.Generic
     open Microsoft.FSharp.Reflection
+
+    open Unity
 
     let cacheCreateOrGet<'keyType,'entryType> 
                 (cache:Dictionary<Type,obj>) 
@@ -95,3 +100,19 @@ module Utility =
         let forBindings= BindingFlags.Public ||| BindingFlags.NonPublic
         typedefof<'t>.GetNestedTypes(forBindings)
         |> Array.filter FSharpType.IsUnion
+
+    let resolve<'op,'req,'res when 'op :> OperationObject<'req,'res> > 
+            (cont:IUnityContainer) =
+        cont.Resolve<'op>() :> OperationObject<'req,'res>
+
+    let call<'op,'req,'res when 'op :> OperationObject<'req,'res> > 
+            (cont:IUnityContainer) (req:'req) =
+        cont
+        |> resolve<'op,'req,'res>
+        |> function op -> op.Call(req)
+
+    let mutable container : IUnityContainer = null
+
+    let bindAndCall<'svc1,'rest> (f:'svc1->'rest) = 
+        container.Resolve<'svc1>() |> f        
+

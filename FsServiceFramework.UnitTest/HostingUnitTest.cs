@@ -67,7 +67,7 @@ namespace FsServiceFramework.UnitTest
                 var series = proxy.GetSeries(seriesId);
                 Assert.IsTrue(series != null);
                 var updatedSeries = proxy.UpdateSeries(series);
-                Assert.IsTrue(updatedSeries.Equals(series));
+                Assert.IsTrue(updatedSeries.Id == series.Id);
             }
 
             using (var proxyContext = ipm.GetTransientContext())
@@ -76,7 +76,7 @@ namespace FsServiceFramework.UnitTest
                 var series = proxy.GetSeries(seriesId);
                 Assert.IsTrue(series != null);
                 var updatedSeries = proxy.UpdateSeries(series);
-                Assert.IsTrue(updatedSeries.Equals(series));
+                Assert.IsTrue(updatedSeries.Id == series.Id);
             }
 
             Hosting.stopServices(container);

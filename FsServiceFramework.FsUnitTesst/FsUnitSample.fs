@@ -73,14 +73,20 @@ type ``test trending manager as example service`` () =
         let proxy = proxyManager.GetProxy<ITrendingManager>()
         let series = proxy.GetSeries(seriesId)
         series |> should not' (be null)
-        series |> should equal 
-                    (SiteTrendingSeries(Id=seriesId,
-                        Label=seriesId.ToString(),
-                        Protocol=TrendingProtocol(Algorithm = "trend",
-                                        Tolerance = 1.0),
-                        SeriesItems = [ { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} };
-                                        { AllResults = []; SelectedResult = {Label=""; Matrix=matrix} } ],
-                        Shift = (shiftForId seriesId)))
+        series.Id |> should equal seriesId
+        series.Label |> should equal (seriesId.ToString())
+        series.Protocol.Algorithm |> should equal "trend"
+        series.Protocol.Tolerance |> should equal 1.0
+        series.SeriesItems.[0].AllResults.Length |> should equal 0
+        series.SeriesItems.[0].SelectedResult |> should equal {Label=""; Matrix=matrix}
+        series.SeriesItems.[1].AllResults.Length |> should equal 0
+        series.SeriesItems.[1].SelectedResult |> should equal {Label=""; Matrix=matrix}
+        (series.Shift, 
+            shiftForId seriesId)
+            ||> Array.map2 (-)
+            |> Array.map abs
+            |> Array.sum
+            |> should be (lessThan 1e-6)
 
 
     [<TestMethod>] 
@@ -94,6 +100,20 @@ type ``test trending manager as example service`` () =
         let updatedSeries = series
         updatedSeries.Shift <- series.Shift |> Array.map (fun x -> x + 1.0)
         let returnedSeries = proxy.UpdateSeries(updatedSeries);
-        returnedSeries |> should equal updatedSeries
-        returnedSeries |> should not' (equal series)
+        returnedSeries |> should not' (be null)
+        returnedSeries.Id |> should equal series.Id
+        returnedSeries.Label |> should equal series.Label
+        returnedSeries.Protocol.Algorithm |> should equal "trend"
+        returnedSeries.Protocol.Tolerance |> should equal 1.0
+        returnedSeries.SeriesItems.[0].AllResults.Length |> should equal 0
+        returnedSeries.SeriesItems.[0].SelectedResult |> should equal {Label=""; Matrix=matrix}
+        returnedSeries.SeriesItems.[1].AllResults.Length |> should equal 0
+        returnedSeries.SeriesItems.[1].SelectedResult |> should equal {Label=""; Matrix=matrix}
+        (returnedSeries.Shift, 
+            updatedSeries.Shift) 
+            ||> Array.map2 (-) 
+            |> Array.map abs
+            |> Array.sum
+            |> should be (lessThan 1e-4)
+        
 
