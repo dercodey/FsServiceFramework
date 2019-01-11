@@ -1,6 +1,6 @@
 language: csharp
 solution: FsServiceFramework.sln
 script:    # the following commands are just examples, use whatever your build process requires
-  - ./build.sh
+  - msbuild /p:Configuration=Release FsServiceFramework.sln
   - ./test.sh
   - grep "Test Results" build.log
