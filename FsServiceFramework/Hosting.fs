@@ -15,9 +15,10 @@ module Hosting =
     open Unity.Injection
 
     // name used for the ProxyManager lifetime manager
-    let pmLifetimeManager = new ContainerControlledLifetimeManager()
+    let mutable pmLifetimeManager = null
 
     let createHostContainer () =        
+        pmLifetimeManager <- new ContainerControlledLifetimeManager()
         (new UnityContainer())
             .AddNewExtension<Interception>()
             // TODO: register these by Unity configuration file
@@ -31,5 +32,8 @@ module Hosting =
 
     let stopServices (container:IUnityContainer) =        
         pmLifetimeManager.Dispose() // dispose of all proxies currently in use        
+        pmLifetimeManager <- null
         container.ResolveAll<ServiceHost>()
         |> Seq.iter (fun host -> host.Close())  // and stop all hosts
+
+
