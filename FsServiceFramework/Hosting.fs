@@ -32,8 +32,8 @@ module Hosting =
         (new UnityContainer())
             .AddNewExtension<Interception>()
             .RegisterType<IProxyManager, ProxyManager>(pmLifetimeManager)
-            .RegisterInstance<TraceContext>(Tracing.createTraceContext())
-            .RegisterInstance<TestingContext>(Nz2Testing.createTestingContext())
+            .RegisterInstance<TraceContext>(TraceContext(Guid.NewGuid(), 1))
+            .RegisterInstance<TestingContext>(TestingContext(Production))
             // this is registered so it will be disposed, to shut down the services
             .RegisterInstance<ContainerControlledLifetimeManager>(
                 nameProxyManagerLifetimeManager, pmLifetimeManager)

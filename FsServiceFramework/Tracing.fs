@@ -3,13 +3,16 @@
 open System
 open System.Runtime.Serialization
 
+[<AbstractClass>]
+type CallContextBase() =
+    [<DataMember>] member val CallBegin = DateTime.Now with get, set
+
 [<DataContract>]
-[<CLIMutable>]
-type TraceContext = {
-    [<DataMember>] CorrelationId : Guid
-    [<DataMember>] SequenceNumber : int
-    [<DataMember>] ClientTimeStamp : DateTime
-    [<DataMember>] EventTimeStamp : DateTime }
+type TraceContext(correlationId:Guid, sequenceNumber:int) =
+    inherit CallContextBase()
+    [<DataMember>] member val CorrelationId = correlationId with get, set
+    [<DataMember>] member val SequenceNumber = sequenceNumber with get, set
+    [<DataMember>] member val EventTimeStamp = DateTime.Now with get, set
 
 module Tracing =
 
@@ -18,31 +21,28 @@ module Tracing =
     open Unity
     open Unity.Injection
 
-    let createTraceContext () = 
-        let now = DateTime.UtcNow
-        { CorrelationId = Guid.NewGuid();
-            ClientTimeStamp = now;
-            EventTimeStamp = now;
-            SequenceNumber = 1 }
-
+    (* TODO: generic mechanism to register CallContext objects with message inspectors *)
     let registerMessageInspectors (container:IUnityContainer) =
         let createClientMessageInspector (childContainer:IUnityContainer) =
-            { new IClientMessageInspector with
-                member this.BeforeSendRequest (request, channel) = 
-                    let current = childContainer.Resolve<TraceContext>()
-                    Utility.updateHeaderWithContext request.Headers current |> ignore
-                    null
-                member this.AfterReceiveReply (request, correlation) = () } :> obj
+            box { new IClientMessageInspector with
+                    member this.BeforeSendRequest (request, channel) = 
+                        let current = childContainer.Resolve<TraceContext>()
+                        Utility.updateHeaderWithContext request.Headers current |> ignore
+                        null
+                    member this.AfterReceiveReply (request, correlation) = () }
         let createDispatchMessageInspector (childContainer:IUnityContainer) =
-            { new IDispatchMessageInspector with
-                member this.AfterReceiveRequest (request, channel, context) = 
-                    let headerTracing = Utility.getContextFromHeader<TraceContext> request.Headers
-                    container.RegisterInstance<TraceContext>(headerTracing) |> ignore
-                    null
-                member this.BeforeSendReply (reply, correlation) =
-                    let current = container.Resolve<TraceContext>()
-                    let replyTracingContext = { current with SequenceNumber = current.SequenceNumber - 1 }
-                    Utility.updateHeaderWithContext reply.Headers replyTracingContext |> ignore } :> obj
+            box { new IDispatchMessageInspector with
+                    member this.AfterReceiveRequest (request, channel, context) = 
+                        let headerTracing = Utility.getContextFromHeader<TraceContext> request.Headers
+                        container.RegisterInstance<TraceContext>(headerTracing) |> ignore
+                        null
+                    member this.BeforeSendReply (reply, correlation) =
+                        let current = container.Resolve<TraceContext>()
+                        let replyTracingContext = 
+                            TraceContext(
+                                correlationId = current.CorrelationId, 
+                                sequenceNumber = current.SequenceNumber + 1)
+                        Utility.updateHeaderWithContext reply.Headers replyTracingContext |> ignore }
         container
             .RegisterType<IClientMessageInspector>(
                 typedefof<TraceContext>.Namespace + "::" + typedefof<TraceContext>.Name, 

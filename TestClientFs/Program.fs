@@ -7,10 +7,8 @@ open Unity
 [<EntryPoint>]
 let main argv = 
     (new UnityContainer())
-        .RegisterInstance<TraceContext>(Tracing.createTraceContext()) 
-        .RegisterInstance<TestingContext>(
-            { Nz2Testing.createTestingContext() with 
-                TestContextId = VolatileTest (Guid.NewGuid()) })
+        .RegisterInstance<TraceContext>(TraceContext(Guid.NewGuid(), 1)) 
+        .RegisterInstance<TestingContext>(TestingContext(VolatileTest (Guid.NewGuid())))
     |> Tracing.registerMessageInspectors
     |> Nz2Testing.registerMessageInspectors
     |> function

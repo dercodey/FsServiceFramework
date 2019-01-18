@@ -13,20 +13,15 @@ type TestingContextId =
         Utility.GetKnownTypes<TestingContextId>()
 
 [<DataContract>]
-[<CLIMutable>]
-type TestingContext = {
-    [<DataMember>] TestContextId : TestingContextId
-    [<DataMember>] StartTimeStamp : DateTime }
+type TestingContext(testingContextId:TestingContextId) =
+    inherit CallContextBase()
+    [<DataMember>] member val TestContextId = testingContextId with get, set
 
 module Nz2Testing =
 
     open Unity
     open Unity.Injection
     open System.ServiceModel.Dispatcher
-
-    let createTestingContext() =
-        { TestContextId = Production;
-            StartTimeStamp = DateTime.Now }
 
     let createRepositoryForTestContext<'key, 'entity
             when 'key : comparison
