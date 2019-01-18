@@ -40,24 +40,14 @@ module Policy =
     open Utility
 
     // creates an endpoint for the contract type
-    let createServiceEndpoint (contractType:Type) (container:IUnityContainer) =
-
-        // returns the policy attribute defined on the contract type
-        let getPolicyAttribute (contractType:Type) =
-            getCustomAttribute<PolicyAttribute> contractType
-    
-        // returns the endpoint address for the contract type
-        let getEndpointAddress (contractType:Type) =
-            (getPolicyAttribute contractType).EndpointAddress contractType 
-
-        // returns the binding for the contract type
-        let getBinding (contractType:Type) =
-            (getPolicyAttribute contractType).Binding
-
-        let cd = ContractDescription.GetContract(contractType)
-        let serviceEndpoint = ServiceEndpoint(cd, (getBinding contractType),
-                                EndpointAddress(getEndpointAddress contractType))
-        container
-        |> Tracing.registerMessageInspectors 
-        |> Nz2Testing.registerMessageInspectors
-        |> MessageHeaders.addMessageInspectors serviceEndpoint
+    let createServiceEndpoint (contractType:Type) =
+        contractType
+        |> getCustomAttribute<PolicyAttribute> 
+        |> function 
+            policyAttribute -> 
+                (ContractDescription.GetContract(contractType), 
+                    policyAttribute.Binding, 
+                    contractType
+                    |> policyAttribute.EndpointAddress 
+                    |> EndpointAddress)
+        |> ServiceEndpoint

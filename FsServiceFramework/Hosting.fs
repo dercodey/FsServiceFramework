@@ -9,6 +9,7 @@ module Hosting =
     open Unity.Interception.ContainerIntegration
     open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
     open Unity.Injection
+    open System.ServiceModel.Dispatcher
 
     // name used for the ProxyManager lifetime manager
     let nameProxyManagerLifetimeManager = "ProxyManager_LifetimeManager"
@@ -34,7 +35,10 @@ module Hosting =
             InterceptionBehavior<PerformanceMonitorInterceptionBehavior>()) |> ignore        
 
         // create and configure the endpoint for unity instance construction
-        let endpoint = Policy.createServiceEndpoint contractType container
+        let endpoint = Policy.createServiceEndpoint contractType
+        MessageHeaders.addMessageInspectors endpoint 
+            (container.ResolveAll<IClientMessageInspector>()) 
+            (container.ResolveAll<IDispatchMessageInspector>()) |> ignore
         endpoint.Contract.Behaviors.Add(Instance.createInstanceContractBehavior container contractType)
 
         // create the host

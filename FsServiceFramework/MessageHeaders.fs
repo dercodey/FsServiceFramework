@@ -7,8 +7,6 @@ module MessageHeaders =
     open System.ServiceModel.Description
     open System.ServiceModel.Dispatcher
 
-    open Unity
-
     let updateHeaderWithContext<'t> (headers:MessageHeaders) (current:'t) =
         let headerName = typedefof<'t>.Name
         let headerNamespace = typedefof<'t>.Namespace
@@ -26,21 +24,16 @@ module MessageHeaders =
         | -1 ->  invalidArg "getContextFromHeader" "no message header for type" 
         | index -> headers.GetHeader<'t>(index)
 
-    let addMessageInspectors (endpoint:ServiceEndpoint) (container:IUnityContainer) =
-        let messageContextManagerBehavior = 
-            { new IEndpointBehavior with 
-                member this.ApplyClientBehavior (endpoint, clientRuntime) =
-                    container.ResolveAll<IClientMessageInspector>()
-                    |> Seq.iter (fun clientMessageInspector -> 
-                                    clientRuntime.ClientMessageInspectors.Add(clientMessageInspector))
-                    container.ResolveAll<IDispatchMessageInspector>()
-                    |> Seq.iter (fun dispatchMessageInspector -> 
-                                    clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add(dispatchMessageInspector))
-                member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
-                    container.ResolveAll<IDispatchMessageInspector>()
-                    |> Seq.iter (fun dispatchMessageInspector -> 
-                                    endpointDispatcher.DispatchRuntime.MessageInspectors.Add(dispatchMessageInspector))
-                member this.AddBindingParameters (endpoint, bindingParameters) = ()
-                member this.Validate endpoint = () }
-        endpoint.Behaviors.Add(messageContextManagerBehavior)
+    let addMessageInspectors (endpoint:ServiceEndpoint) 
+            (clientInspectors:seq<IClientMessageInspector>) 
+            (dispatchInspectors:seq<IDispatchMessageInspector>) =
+        { new IEndpointBehavior with 
+            member this.ApplyClientBehavior (endpoint, clientRuntime) =
+                clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add
+                dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+            member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
+                dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+            member this.AddBindingParameters (endpoint, bindingParameters) = ()
+            member this.Validate endpoint = () }
+        |> endpoint.Behaviors.Add
         endpoint

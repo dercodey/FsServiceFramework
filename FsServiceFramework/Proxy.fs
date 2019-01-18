@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.ServiceModel
 open System.ServiceModel.Channels
+open System.ServiceModel.Dispatcher
 
 open FsServiceFramework.Utility
 
@@ -17,6 +18,7 @@ type IProxyManager =
     abstract GetTransientContext : unit -> IDisposable
     abstract GetProxy<'contract> : unit -> 'contract
 
+(* TODO: why are there two of these being created? *)
 // TODO: thread to periodically remove proxies, if not in use
 type ProxyManager(container:IUnityContainer) =
     let factoryCache = new Dictionary<Type,obj>()
@@ -24,7 +26,11 @@ type ProxyManager(container:IUnityContainer) =
 
     let mutable proxiesInContext:List<obj> = null
     member x.GetFactory<'contract> () =
-        let createChannelFactory () = new ChannelFactory<'contract>(Policy.createServiceEndpoint typedefof<'contract> container)
+        let endpoint = Policy.createServiceEndpoint typedefof<'contract> 
+        MessageHeaders.addMessageInspectors endpoint
+            (container.ResolveAll<IClientMessageInspector>())
+            (container.ResolveAll<IDispatchMessageInspector>()) |> ignore
+        let createChannelFactory () = new ChannelFactory<'contract>(endpoint)
         cacheCreateOrGet<'contract, ChannelFactory<'contract>> factoryCache createChannelFactory
     interface IProxyManager with
         member this.GetProxy<'contract> () : 'contract =
