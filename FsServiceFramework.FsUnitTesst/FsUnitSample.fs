@@ -1,8 +1,6 @@
 namespace FsServiceFramework.FsUnitTesst.Tests
 
 open Microsoft.VisualStudio.TestTools.UnitTesting
-open FsUnit.MsTest
-open NHamcrest.Core
 
 open Unity
 
@@ -67,27 +65,26 @@ type ``test trending manager as example service`` () =
 
     [<TestMethod>] 
     member ___.``when series get is called should have correct value.`` () =
-
         let proxyManager = container.Resolve<IProxyManager>()
         use proxyContext = proxyManager.GetTransientContext()
         let proxy = proxyManager.GetProxy<ITrendingManager>()
         let series = proxy.GetSeries(seriesId)
-        series |> should not' (be null)
-        series.Id |> should equal seriesId
-        series.Label |> should equal (seriesId.ToString())
-        series.Protocol.Algorithm |> should equal "trend"
-        series.Protocol.Tolerance |> should equal 1.0
-        series.SeriesItems.[0].AllResults.Length |> should equal 0
-        series.SeriesItems.[0].SelectedResult |> should equal {Label=""; Matrix=matrix}
-        series.SeriesItems.[1].AllResults.Length |> should equal 0
-        series.SeriesItems.[1].SelectedResult |> should equal {Label=""; Matrix=matrix}
+        Assert.IsNotNull(series)
+        Assert.AreEqual(series.Id, seriesId)
+        Assert.AreEqual(series.Label, seriesId.ToString())
+        Assert.AreEqual(series.Protocol.Algorithm, "trend")
+        Assert.AreEqual(series.Protocol.Tolerance, 1.0)
+        Assert.AreEqual(series.SeriesItems.[0].AllResults.Length, 0)
+        Assert.AreEqual(series.SeriesItems.[0].SelectedResult, {Label=""; Matrix=matrix})
+        Assert.AreEqual(series.SeriesItems.[1].AllResults.Length, 0)
+        Assert.AreEqual(series.SeriesItems.[1].SelectedResult, {Label=""; Matrix=matrix})
         (series.Shift, 
             shiftForId seriesId)
             ||> Array.map2 (-)
             |> Array.map abs
             |> Array.sum
-            |> should be (lessThan 1e-6)
-
+            |> ((>) 1e-6)
+            |> Assert.IsTrue
 
     [<TestMethod>] 
     member ___.``when series is updated without change it should be the same is the original.`` () =
@@ -100,20 +97,20 @@ type ``test trending manager as example service`` () =
         let updatedSeries = series
         updatedSeries.Shift <- series.Shift |> Array.map (fun x -> x + 1.0)
         let returnedSeries = proxy.UpdateSeries(updatedSeries);
-        returnedSeries |> should not' (be null)
-        returnedSeries.Id |> should equal series.Id
-        returnedSeries.Label |> should equal series.Label
-        returnedSeries.Protocol.Algorithm |> should equal "trend"
-        returnedSeries.Protocol.Tolerance |> should equal 1.0
-        returnedSeries.SeriesItems.[0].AllResults.Length |> should equal 0
-        returnedSeries.SeriesItems.[0].SelectedResult |> should equal {Label=""; Matrix=matrix}
-        returnedSeries.SeriesItems.[1].AllResults.Length |> should equal 0
-        returnedSeries.SeriesItems.[1].SelectedResult |> should equal {Label=""; Matrix=matrix}
+        Assert.IsNotNull(returnedSeries)
+        Assert.AreEqual(returnedSeries.Id, seriesId)
+        Assert.AreEqual(returnedSeries.Label, series.Label)
+        Assert.AreEqual(returnedSeries.Protocol.Algorithm, "trend")
+        Assert.AreEqual(returnedSeries.Protocol.Tolerance, 1.0)
+        Assert.AreEqual(returnedSeries.SeriesItems.[0].AllResults.Length, 0)
+        Assert.AreEqual(returnedSeries.SeriesItems.[0].SelectedResult, {Label=""; Matrix=matrix})
+        Assert.AreEqual(returnedSeries.SeriesItems.[1].AllResults.Length, 0)
+        Assert.AreEqual(returnedSeries.SeriesItems.[1].SelectedResult, {Label=""; Matrix=matrix})
         (returnedSeries.Shift, 
-            updatedSeries.Shift) 
-            ||> Array.map2 (-) 
+            updatedSeries.Shift)
+            ||> Array.map2 (-)
             |> Array.map abs
             |> Array.sum
-            |> should be (lessThan 1e-4)
-        
+            |> ((>) 1e-6)
+            |> Assert.IsTrue
 
