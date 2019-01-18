@@ -3,14 +3,16 @@
 open FsServiceFramework
 open Trending.Contracts
 open Unity
+open System.ServiceModel.Dispatcher
+open Unity.Injection
 
 [<EntryPoint>]
 let main argv = 
     (new UnityContainer())
         .RegisterInstance<TraceContext>(TraceContext(Guid.NewGuid(), 1)) 
         .RegisterInstance<TestingContext>(TestingContext(VolatileTest (Guid.NewGuid())))
-    |> Tracing.registerMessageInspectors
-    |> Nz2Testing.registerMessageInspectors
+        .RegisterType<IClientMessageInspector>(InjectionFactory(CallContextOperations.createClientMessageInspector))
+        .RegisterType<IDispatchMessageInspector>(InjectionFactory(CallContextOperations.createDispatchMessageInspector))
     |> function
         container -> 
             use proxyManager = new ProxyManager(container)

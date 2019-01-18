@@ -31,22 +31,23 @@ module Hosting =
         let pmLifetimeManager = new ContainerControlledLifetimeManager()
         (new UnityContainer())
             .AddNewExtension<Interception>()
-            .RegisterType<IProxyManager, ProxyManager>(pmLifetimeManager)
+
+            //////////////////////////////////////////////////
+            //////////////////////////////////////////////////
+
             .RegisterInstance<TraceContext>(TraceContext(Guid.NewGuid(), 1))
             .RegisterInstance<TestingContext>(TestingContext(Production))
+
+            //////////////////////////////////////////////////
+            //////////////////////////////////////////////////
+
+            .RegisterType<IClientMessageInspector>(InjectionFactory(CallContextOperations.createClientMessageInspector))
+            .RegisterType<IDispatchMessageInspector>(InjectionFactory(CallContextOperations.createDispatchMessageInspector))
+
+            .RegisterType<IProxyManager, ProxyManager>(pmLifetimeManager)
             // this is registered so it will be disposed, to shut down the services
             .RegisterInstance<ContainerControlledLifetimeManager>(
                 nameProxyManagerLifetimeManager, pmLifetimeManager)
-
-        //////////////////////////////////////////////////
-        //////////////////////////////////////////////////
-
-        |> Tracing.registerMessageInspectors 
-        |> Nz2Testing.registerMessageInspectors
-
-        //////////////////////////////////////////////////
-        //////////////////////////////////////////////////
-
 
     let startServices (container:IUnityContainer) =
         container.ResolveAll<ServiceHost>()

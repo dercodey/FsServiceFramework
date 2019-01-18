@@ -43,24 +43,3 @@ module Nz2Testing =
             printfn "Creating test repository for %s guid = %s" typedefof<'entity>.Name (guid.ToString())
             let getKeyFunc (forEntity:'entity) = Unchecked.defaultof<'key>
             VolatileRepository<'key, 'entity>(getKeyFunc) :> obj
-
-    let registerMessageInspectors (container:IUnityContainer) = 
-        let createClientMessageInspector (childContainer:IUnityContainer) =
-            { new IClientMessageInspector with
-                member this.BeforeSendRequest (request, channel) = 
-                    let testingContext = container.Resolve<TestingContext>()
-                    Utility.updateHeaderWithContext request.Headers testingContext |> ignore
-                    null
-                member this.AfterReceiveReply (request, correlation) = () } :> obj
-        let createDispatchMessageInspector (childContainer:IUnityContainer) =
-            { new IDispatchMessageInspector with
-                member this.AfterReceiveRequest (request, channel, context) = 
-                    let testingContext = Utility.getContextFromHeader<TestingContext> request.Headers
-                    container.RegisterInstance<TestingContext>(testingContext) |> ignore
-                    null
-                member this.BeforeSendReply (reply, correlation) = () } :> obj
-        container
-            .RegisterType<IClientMessageInspector>("nz2testing", 
-                InjectionFactory(createClientMessageInspector))
-            .RegisterType<IDispatchMessageInspector>("nz2testing", 
-                InjectionFactory(createDispatchMessageInspector))
