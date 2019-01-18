@@ -86,6 +86,13 @@ module Utility =
 
     open Unity
 
+    // retrieves a custom attribute by template
+    let getCustomAttribute<'attributeType when 'attributeType :> Attribute> (fromType:Type) =
+        fromType.GetCustomAttributes() 
+            |> Seq.filter (fun x -> x :? 'attributeType)  
+            |> Seq.cast<'attributeType>
+            |> Seq.head
+
     let cacheCreateOrGet<'keyType,'entryType> 
                 (cache:Dictionary<Type,obj>) 
                 (createFunc : unit -> 'entryType) =

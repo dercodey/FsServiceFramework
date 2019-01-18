@@ -37,32 +37,23 @@ type RequiredInterfaceAttribute(requiredType:Type) =
 
 module Policy = 
     open Unity
-
-    // retrieves a custom attribute by template
-    let getCustomAttribute<'attributeType when 'attributeType :> Attribute> (fromType:Type) =
-        fromType.GetCustomAttributes() 
-            |> Seq.filter (fun x -> x :? 'attributeType)  
-            |> Seq.cast<'attributeType>
-            |> Seq.head
-
-    // returns the contract type for an implementation class
-    let getContractType (implType:Type) =
-        (getCustomAttribute<ProvidedInterfaceAttribute> implType).ContractType
-    
-    // returns the policy attribute defined on the contract type
-    let getPolicyAttribute (contractType:Type) =
-        getCustomAttribute<PolicyAttribute> contractType
-    
-    // returns the endpoint address for the contract type
-    let getEndpointAddress (contractType:Type) =
-        (getPolicyAttribute contractType).EndpointAddress contractType 
-
-    // returns the binding for the contract type
-    let getBinding (contractType:Type) =
-        (getPolicyAttribute contractType).Binding
+    open Utility
 
     // creates an endpoint for the contract type
     let createServiceEndpoint (contractType:Type) (container:IUnityContainer) =
+
+        // returns the policy attribute defined on the contract type
+        let getPolicyAttribute (contractType:Type) =
+            getCustomAttribute<PolicyAttribute> contractType
+    
+        // returns the endpoint address for the contract type
+        let getEndpointAddress (contractType:Type) =
+            (getPolicyAttribute contractType).EndpointAddress contractType 
+
+        // returns the binding for the contract type
+        let getBinding (contractType:Type) =
+            (getPolicyAttribute contractType).Binding
+
         let cd = ContractDescription.GetContract(contractType)
         let serviceEndpoint = ServiceEndpoint(cd, (getBinding contractType),
                                 EndpointAddress(getEndpointAddress contractType))

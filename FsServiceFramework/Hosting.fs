@@ -38,7 +38,9 @@ module Hosting =
         endpoint.Contract.Behaviors.Add(Instance.createInstanceContractBehavior container contractType)
 
         // create the host
-        let host = new ServiceHost(implementationType, Policy.getEndpointAddress contractType)
+        let policyAttribute = Utility.getCustomAttribute<PolicyAttribute> contractType
+        let endpointAddress = policyAttribute.EndpointAddress contractType
+        let host = new ServiceHost(implementationType, endpointAddress)
         host.AddServiceEndpoint(endpoint)
         container.RegisterInstance<ServiceHost>(
             sprintf "Host_for_<%s::%s>" implementationType.Namespace implementationType.Name, 
