@@ -55,7 +55,6 @@ module ComponentRegistration =
             member this.ApplyClientBehavior (_, _) = ()
             member this.ApplyDispatchBehavior (_, endpointDispatcher) =
                 let dr = endpointDispatcher.DispatchRuntime
-                (* TODO: why is this applied through the contract, but not endpoint? *)
                 dr.InstanceProvider <-                     
                     { new IInstanceProvider with // add instance provider to resolve from unity container
                         member this.GetInstance (ic) = this.GetInstance(ic, null)
@@ -81,6 +80,15 @@ module ComponentRegistration =
                         |> Seq.map (CallContextOperations.updateHeaderWithContext reply.Headers)
                         |> ignore }
                 |> dr.MessageInspectors.Add
+
+#if SELECT_OPERATION
+                dr.OperationSelector <- 
+                    { new IDispatchOperationSelector with 
+                        member this.SelectOperation(message) = 
+                            let operation = message.Headers.Action
+                            printfn "Selected operation is %s for %A" operation message
+                            operation }
+#endif
 
             member this.AddBindingParameters (_, _) = ()
             member this.Validate _ = () }
