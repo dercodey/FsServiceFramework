@@ -50,11 +50,11 @@ type ``test trending manager as example service`` () =
 
         // register services and IoC container
         container
-        |> Hosting.registerService<ITrendingManager, TrendingManagerService>
-        |> Hosting.registerService<ITrendingEngine, TrendingEngineService>
-        |> Hosting.registerService<ITrendingDataAccess, TrendingDataAccess>
-        |> Hosting.registerFunction<ITrendCalculationFunction, TrendCalculation>
-        |> Hosting.registerRepositoryInstance<int, SiteTrendingSeries> repository
+        |> ComponentRegistration.registerService<ITrendingManager, TrendingManagerService>
+        |> ComponentRegistration.registerService<ITrendingEngine, TrendingEngineService>
+        |> ComponentRegistration.registerService<ITrendingDataAccess, TrendingDataAccess>
+        |> ComponentRegistration.registerFunction<ITrendCalculationFunction, TrendCalculation>
+        |> ComponentRegistration.registerRepositoryInstance<int, SiteTrendingSeries> repository
         |> Hosting.startServices 
 
     [<TestCleanup>] 

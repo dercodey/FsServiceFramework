@@ -60,6 +60,7 @@
     <Compile Include="Proxy.fs" />
     <Compile Include="DurableInstance.fs" />
     <Compile Include="Hosting.fs" />
+    <Compile Include="ComponentRegistration.fs" />
     <Content Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>

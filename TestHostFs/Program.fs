@@ -50,13 +50,13 @@ let main argv =
     // TODO: figure out how to dispose proxy manager better
     let container = Hosting.createHostContainer() 
     container
-    |> Hosting.registerService<ITrendingManager, TrendingManagerService>
-    |> Hosting.registerService<ITrendingEngine, TrendingEngineService>
-    |> Hosting.registerService<ITrendingDataAccess, TrendingDataAccess>
-    |> Hosting.registerFunction<ITrendCalculationFunction, TrendCalculation>
-    |> Hosting.registerRepositoryInstance<int, SiteTrendingSeries>(repository)
-    |> Hosting.registerService<IWorklistManager, WorklistManagerService>
-    |> Hosting.registerService<IWorklistEngine, WorklistEngineService>
+    |> ComponentRegistration.registerService<ITrendingManager, TrendingManagerService>
+    |> ComponentRegistration.registerService<ITrendingEngine, TrendingEngineService>
+    |> ComponentRegistration.registerService<ITrendingDataAccess, TrendingDataAccess>
+    |> ComponentRegistration.registerFunction<ITrendCalculationFunction, TrendCalculation>
+    |> ComponentRegistration.registerRepositoryInstance<int, SiteTrendingSeries>(repository)
+    |> ComponentRegistration.registerService<IWorklistManager, WorklistManagerService>
+    |> ComponentRegistration.registerService<IWorklistEngine, WorklistEngineService>
     |> Hosting.startServices
     Console.ReadLine() |> ignore
 
