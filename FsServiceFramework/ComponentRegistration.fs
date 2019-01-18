@@ -42,36 +42,32 @@ module ComponentRegistration =
                         | ex -> sprintf "threw exception %s" ex.Message)
                 result) |> InterceptionBehavior)) |> ignore
 
-        let contractDescription = ContractDescription.GetContract(typedefof<'contract>)
-        { new IContractBehavior with
-            member this.AddBindingParameters (_, _, _) = ()
-            member this.ApplyClientBehavior (_, _, _) = ()
-            member this.ApplyDispatchBehavior (_, _, dr) =
-                dr.InstanceProvider <-                     
-                    { new IInstanceProvider with // add instance provider to resolve from unity container
-                        member this.GetInstance (ic) = this.GetInstance(ic, null)
-                        member this.GetInstance (ic, _) = ic.Extensions.Find<UnityInstanceContextExtension>().ChildContainer.Resolve(contractType)
-                        member this.ReleaseInstance (_, _) = () }
-                { new IInstanceContextInitializer with 
-                    member this.Initialize (ic, _) = 
-                        ic.Extensions.Add(UnityInstanceContextExtension(container))
-                        ic.Extensions.Add(Instance.StorageProviderInstanceContextExtension(container)) }
-                |> dr.InstanceContextInitializers.Add
-            member this.Validate (_, _) = () }
-        |> contractDescription .Behaviors.Add
-
         let endpoint =      // create and configure the endpoint for unity instance construction
             typedefof<'contract>
             |> Utility.getCustomAttribute<PolicyAttribute> 
             |> function 
                 policyAttribute -> 
-                    ServiceEndpoint(contractDescription, 
+                    ServiceEndpoint(ContractDescription.GetContract(typedefof<'contract>), 
                         policyAttribute.Binding, 
                         typedefof<'contract> |> policyAttribute.EndpointAddress |> EndpointAddress)
 
         { new IEndpointBehavior with 
             member this.ApplyClientBehavior (_, _) = ()
             member this.ApplyDispatchBehavior (_, endpointDispatcher) =
+                let dr = endpointDispatcher.DispatchRuntime
+                (* TODO: why is this applied through the contract, but not endpoint? *)
+                dr.InstanceProvider <-                     
+                    { new IInstanceProvider with // add instance provider to resolve from unity container
+                        member this.GetInstance (ic) = this.GetInstance(ic, null)
+                        member this.GetInstance (ic, _) = ic.Extensions.Find<UnityInstanceContextExtension>().ChildContainer.Resolve(contractType)
+                        member this.ReleaseInstance (_, _) = () }
+
+                { new IInstanceContextInitializer with 
+                    member this.Initialize (ic, _) = 
+                        ic.Extensions.Add(UnityInstanceContextExtension(container))
+                        ic.Extensions.Add(Instance.StorageProviderInstanceContextExtension(container)) }
+                |> dr.InstanceContextInitializers.Add
+
                 { new IDispatchMessageInspector with    // add dispatch message inspectors for restoring call context objects
                     member this.AfterReceiveRequest (request, _, _) = 
                         container.ResolveAll<CallContextBase>()
@@ -84,7 +80,8 @@ module ComponentRegistration =
                         container.ResolveAll<CallContextBase>()
                         |> Seq.map (CallContextOperations.updateHeaderWithContext reply.Headers)
                         |> ignore }
-                |> endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+                |> dr.MessageInspectors.Add
+
             member this.AddBindingParameters (_, _) = ()
             member this.Validate _ = () }
         |> endpoint.Behaviors.Add
