@@ -61,6 +61,7 @@
     <Compile Include="DurableInstance.fs" />
     <Compile Include="Hosting.fs" />
     <Compile Include="ComponentRegistration.fs" />
+    <Compile Include="LambdaServiceRegistration.fs" />
     <Content Include="App.config" />
     <Content Include="packages.config" />
   </ItemGroup>
@@ -105,6 +106,7 @@
       <HintPath>..\packages\System.Security.Principal.Windows.4.5.1\lib\net461\System.Security.Principal.Windows.dll</HintPath>
     </Reference>
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceModel.Internals" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />

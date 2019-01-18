@@ -9,7 +9,7 @@ open Trending.Contracts
 open Trending.Services
 
 [<TestClass>] 
-type ``test trending manager as example service`` () =
+type ``test lambda service`` () =
     let container = Hosting.createHostContainer()    
 
     // values for testing

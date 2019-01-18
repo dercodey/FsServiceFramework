@@ -57,6 +57,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Content Include="packages.config" />
     <Compile Include="FsUnitSample.fs" />
+    <Compile Include="FsLambdaServiceUnitSample.fs" />
     <Content Include="App.config" />
   </ItemGroup>
   <ItemGroup>
