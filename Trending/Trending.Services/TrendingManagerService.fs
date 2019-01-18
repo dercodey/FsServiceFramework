@@ -20,8 +20,6 @@ module TrendingManagerService =
     |> sprintf "%A"
     |> ignore
 
-[<ProvidedInterface(typedefof<ITrendingManager>)>]
-[<RequiredInterface(typedefof<ITrendingEngine>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
 type TrendingManagerService(pm:IProxyManager) =
     do Log.Out(Debug "Creating a TrendingManagerService.")

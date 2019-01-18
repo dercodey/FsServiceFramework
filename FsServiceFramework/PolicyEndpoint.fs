@@ -23,17 +23,6 @@ type ComponentPolicyAttribute() =
 type IntranetPolicyAttribute() =
     inherit PolicyAttribute(NetTcpBinding())
 
-// these are attributes to be applied to classes
-
-[<AttributeUsage(AttributeTargets.Class)>]
-type ProvidedInterfaceAttribute(providedType:Type) =
-    inherit Attribute()
-    member this.ContractType = providedType
-
-[<AttributeUsage(AttributeTargets.Class)>]
-type RequiredInterfaceAttribute(requiredType:Type) =
-    inherit Attribute()
-    member this.ContractType = requiredType
 
 module Policy = 
     open Unity

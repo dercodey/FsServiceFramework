@@ -4,7 +4,6 @@ open System.ServiceModel
 open FsServiceFramework
 open Trending.Contracts
 
-[<ProvidedInterface(typedefof<ITrendingDataAccess>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
 type TrendingDataAccess(seriesRepo:IRepository<int, SiteTrendingSeries>) =
     interface ITrendingDataAccess with

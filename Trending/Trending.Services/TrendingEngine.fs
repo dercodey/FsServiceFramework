@@ -23,8 +23,6 @@ module TrendingEngineService =
                 da.UpdateTrendingSeries series; 0) |> Utility.bindAndCall }
     |> ignore
 
-[<ProvidedInterface(typedefof<ITrendingEngine>)>]
-[<RequiredInterface(typedefof<ITrendingDataAccess>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
 type TrendingEngineService(pm:IProxyManager, func:ITrendCalculationFunction) =
     do Log.Out(Debug "Creating a TrendingEngineService.")

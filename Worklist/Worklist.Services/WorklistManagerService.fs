@@ -19,8 +19,6 @@ module WorklistManagerService =
                 fun (engine:IWorklistEngine) -> engine.CompleteWorklistItem itemId 
                 |> bindAndCall }
 
-[<ProvidedInterface(typedefof<IWorklistManager>)>]
-[<RequiredInterface(typedefof<IWorklistEngine>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
 type WorklistManagerService(container:IUnityContainer) =
     do Log.Out(Debug "Creating a WorklistManagerService.")

@@ -32,8 +32,6 @@ module WorklistEngineService =
                 -> da.CompleteWorklistItem(itemId))  |> bindAndCall bindAndCall }
     |> ignore
 
-[<ProvidedInterface(typedefof<IWorklistEngine>)>]
-[<RequiredInterface(typedefof<IWorklistDataAccess>)>]
 [<ServiceBehavior(IncludeExceptionDetailInFaults=true)>]
 type WorklistEngineService(pm:IProxyManager) =
     do Log.Out(Debug "Creating a WorklistEngineService.")
