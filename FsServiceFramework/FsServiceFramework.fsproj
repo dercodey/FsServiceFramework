@@ -54,7 +54,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Utility.fs" />
     <Compile Include="Logging.fs" />
-    <Compile Include="Tracing.fs" />
+    <Compile Include="CallContext.fs" />
     <Compile Include="Nz2Testing.fs" />
     <Compile Include="PolicyEndpoint.fs" />
     <Compile Include="Proxy.fs" />

@@ -4,6 +4,7 @@ open System
 open System.Runtime.Serialization
 open System.Data.Entity
 
+(* TODO: this can be moved to separate module with Unity config file to configure it *)
 [<KnownType("GetKnownTypes")>]
 type TestingContextId =
     | Production
