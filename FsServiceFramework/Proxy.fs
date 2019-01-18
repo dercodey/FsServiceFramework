@@ -25,6 +25,7 @@ type ProxyManager(container:IUnityContainer) =
     let factoryCache = new Dictionary<Type,obj>()
     let channelCache = new Dictionary<Type,obj>()
 
+    // TODO: this should use TLS instead of proxy manager class instance
     let proxiesInContext = List<obj>()
     member x.GetFactory<'contract> () =
         let createChannelFactory () = 

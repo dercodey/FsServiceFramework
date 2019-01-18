@@ -25,66 +25,36 @@ module Hosting =
             member this.Detach (owner:InstanceContext) = ()
 
     // name used for the ProxyManager lifetime manager
-    let nameProxyManagerLifetimeManager = "ProxyManager_LifetimeManager"
+    let pmLifetimeManager = new ContainerControlledLifetimeManager()
 
-    let createHostContainer () =
-        let pmLifetimeManager = new ContainerControlledLifetimeManager()
+    let createHostContainer () =        
         (new UnityContainer())
             .AddNewExtension<Interception>()
-
-            //////////////////////////////////////////////////
-            //////////////////////////////////////////////////
-
+            // TODO: register these by Unity configuration file
             .RegisterInstance<TraceContext>(TraceContext(Guid.NewGuid(), 1))
             .RegisterInstance<TestingContext>(TestingContext(Production))
-
-            //////////////////////////////////////////////////
-            //////////////////////////////////////////////////
-
-            // .RegisterType<IDispatchMessageInspector>(InjectionFactory(CallContextOperations.createDispatchMessageInspector))
-
             .RegisterType<IProxyManager, ProxyManager>(pmLifetimeManager)
-            // this is registered so it will be disposed, to shut down the services
-            .RegisterInstance<ContainerControlledLifetimeManager>(
-                nameProxyManagerLifetimeManager, pmLifetimeManager)
 
     let startServices (container:IUnityContainer) =
         container.ResolveAll<ServiceHost>()
         |> Seq.iter (fun host -> host.Open())
 
-    let stopServices (container:IUnityContainer) =
-
-        // dispose of all proxies currently in use
-        let pmLifetimeManager = 
-            container.Resolve<ContainerControlledLifetimeManager>(
-                nameProxyManagerLifetimeManager)
-        pmLifetimeManager.Dispose()
-
-        // and stop all hosts
+    let stopServices (container:IUnityContainer) =        
+        pmLifetimeManager.Dispose() // dispose of all proxies currently in use        
         container.ResolveAll<ServiceHost>()
-        |> Seq.iter (fun host -> host.Close())
-
+        |> Seq.iter (fun host -> host.Close())  // and stop all hosts
 
     let registerService<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
         let contractType = typedefof<'contract>
         let implementationType = typedefof<'implementation>
-        let proxyManager = container.Resolve<IProxyManager>()
-
-        // this registers the proxy and performance Unity interceptions
-        container.RegisterType(contractType, implementationType, 
-            Interceptor<InterfaceInterceptor>(), 
-
-            //////////////////////////////////////////////////
-            //////////////////////////////////////////////////
-            
-            // proxy manager release from transient
-            // TODO: this should use TLS instead of proxy manager class instance
+        let proxyManager = container.Resolve<IProxyManager>()        
+        container.RegisterType(contractType, implementationType,    // this registers the proxy and performance Unity interceptions
+            Interceptor<InterfaceInterceptor>(),             
             (Utility.unityInterceptionBehavior 
                 (fun input inner ->
-                    use opId = proxyManager.GetTransientContext()
+                    use opId = proxyManager.GetTransientContext()   // proxy manager release from transient
                     inner input)
             |> InterceptionBehavior),
-
             (Utility.unityInterceptionBehavior
                 (fun input inner ->
                     let timeFormat (tm:DateTime) = tm.ToLongTimeString()
@@ -99,13 +69,9 @@ module Hosting =
                             | ex -> sprintf "threw exception %s" result.Exception.Message)
                     result)
             |> InterceptionBehavior)) 
-            
-            //////////////////////////////////////////////////
-            //////////////////////////////////////////////////
             |> ignore
 
-        // create and configure the endpoint for unity instance construction
-        let endpoint = 
+        let endpoint =      // create and configure the endpoint for unity instance construction
             typedefof<'contract>
             |> Utility.getCustomAttribute<PolicyAttribute> 
             |> function 
@@ -117,10 +83,10 @@ module Hosting =
                         |> EndpointAddress)
             |> ServiceEndpoint
 
-        // add message inspectors that were registered for their respective contexts
         { new IEndpointBehavior with 
             member this.ApplyClientBehavior (endpoint, clientRuntime) = ()
             member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
+                // add dispatch message inspectors for restoring call context objects
                 { new IDispatchMessageInspector with
                     member this.AfterReceiveRequest (request, channel, context) = 
                         container.ResolveAll<CallContextBase>()
@@ -146,6 +112,7 @@ module Hosting =
             member this.ApplyClientBehavior (cd, ep, cr) = ()
             member this.ApplyDispatchBehavior (cd, ep, dr) =
                 dr.InstanceProvider <- 
+                    // add instance provider to resolve from unity container
                     { new IInstanceProvider with
                         member this.GetInstance (ic:InstanceContext) =
                             this.GetInstance(ic, null)
@@ -161,7 +128,7 @@ module Hosting =
             member this.Validate (cd:ContractDescription, ep:ServiceEndpoint) = () }
         |> endpoint.Contract.Behaviors.Add
 
-        // create the host
+        // create the host and add the configured endpoint
         let host = new ServiceHost(implementationType, endpoint.Address.Uri)
         host.AddServiceEndpoint(endpoint)
 
