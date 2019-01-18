@@ -27,24 +27,24 @@ type ProxyManager(container:IUnityContainer) =
 
     let mutable proxiesInContext:List<obj> = null
     member x.GetFactory<'contract> () =
-        let endpoint = Policy.createServiceEndpoint typedefof<'contract> 
-
-        let clientInspectors = container.ResolveAll<IClientMessageInspector>()
-        let dispatchInspectors = (container.ResolveAll<IDispatchMessageInspector>())
-        { new IEndpointBehavior with 
-            member this.ApplyClientBehavior (endpoint, clientRuntime) =
-                clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add
-                dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
-            member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
-                dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
-            member this.AddBindingParameters (endpoint, bindingParameters) = ()
-            member this.Validate endpoint = () }
-        |> endpoint.Behaviors.Add
-
-        (* TODO is this being done, even if the factory is cached? 
-                what about lazy initialize? *)
-        let createChannelFactory () = new ChannelFactory<'contract>(endpoint)
+        let createChannelFactory () = 
+            let endpoint = Policy.createServiceEndpoint typedefof<'contract> 
+            let clientInspectors = container.ResolveAll<IClientMessageInspector>()
+            let dispatchInspectors = (container.ResolveAll<IDispatchMessageInspector>())
+            { new IEndpointBehavior with 
+                member this.ApplyClientBehavior (endpoint, clientRuntime) =
+                    clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add
+                    dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+                member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
+                    dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+                member this.AddBindingParameters (endpoint, bindingParameters) = ()
+                member this.Validate endpoint = () }
+            |> endpoint.Behaviors.Add
+            let factory = new ChannelFactory<'contract>(endpoint)
+            printfn "factory endpoint name = %s" factory.Endpoint.Binding.Name
+            factory
         cacheCreateOrGet<'contract, ChannelFactory<'contract>> factoryCache createChannelFactory
+
     interface IProxyManager with
         member this.GetProxy<'contract> () : 'contract =
             let createChannel () = 
@@ -62,6 +62,7 @@ type ProxyManager(container:IUnityContainer) =
         member this.GetDurableContext() =
             Guid.NewGuid()
         member this.ReleaseDurableContext (guid:Guid) = ()
+
     interface IDisposable with
         member x.Dispose() = 
             for pair in channelCache do 
