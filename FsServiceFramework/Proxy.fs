@@ -25,18 +25,15 @@ type ProxyManager(container:IUnityContainer) =
     let factoryCache = new Dictionary<Type,obj>()
     let channelCache = new Dictionary<Type,obj>()
 
-    let mutable proxiesInContext:List<obj> = null
+    let proxiesInContext = List<obj>()
     member x.GetFactory<'contract> () =
         let createChannelFactory () = 
             let endpoint = Policy.createServiceEndpoint typedefof<'contract> 
             let clientInspectors = container.ResolveAll<IClientMessageInspector>()
             let dispatchInspectors = (container.ResolveAll<IDispatchMessageInspector>())
             { new IEndpointBehavior with 
-                member this.ApplyClientBehavior (endpoint, clientRuntime) =
-                    clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add
-                    dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
-                member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
-                    dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+                member this.ApplyClientBehavior (endpoint, clientRuntime) = clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add; dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+                member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) = dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
                 member this.AddBindingParameters (endpoint, bindingParameters) = ()
                 member this.Validate endpoint = () }
             |> endpoint.Behaviors.Add
@@ -47,37 +44,17 @@ type ProxyManager(container:IUnityContainer) =
 
     interface IProxyManager with
         member this.GetProxy<'contract> () : 'contract =
-            let createChannel () = 
-                this.GetFactory<'contract>().CreateChannel()
-            let proxy = cacheCreateOrGet<'contract, 'contract> channelCache createChannel
-            match proxiesInContext with
-            | null -> proxy
-            | _ -> proxiesInContext.Add(proxy)
-                   proxy
-        member this.GetTransientContext() =
-            proxiesInContext = List<obj>() |> ignore
-            { new IDisposable with 
-                member this.Dispose() = 
-                    proxiesInContext <- null }
-        member this.GetDurableContext() =
-            Guid.NewGuid()
+            (fun () -> this.GetFactory<'contract>().CreateChannel())
+            |> cacheCreateOrGet<'contract, 'contract> channelCache 
+            |> function proxy -> proxiesInContext.Add(proxy); proxy
+        member this.GetTransientContext() = { new IDisposable with member this.Dispose() = proxiesInContext.Clear() }
+        member this.GetDurableContext() = Guid.NewGuid()
         member this.ReleaseDurableContext (guid:Guid) = ()
 
     interface IDisposable with
         member x.Dispose() = 
-            for pair in channelCache do 
-                (pair.Value :?> IChannel).Close()
-            for pair in factoryCache do 
-                (pair.Value :?> ChannelFactory).Close()
-
-type ProxyManagerInterceptionBehavior(pm:IProxyManager) =
-    interface IInterceptionBehavior with
-        member this.Invoke (input:IMethodInvocation, getNext:GetNextInterceptionBehaviorDelegate) =
-            use opId = pm.GetTransientContext()
-            getNext.Invoke().Invoke(input, getNext)
-        member this.GetRequiredInterfaces() = Type.EmptyTypes |> Array.toSeq
-        member this.WillExecute = true
-
+            for pair in channelCache do (pair.Value :?> IChannel).Close()
+            for pair in factoryCache do (pair.Value :?> ChannelFactory).Close()
 
 module Proxy = 
     ()

@@ -13,6 +13,7 @@ module Hosting =
     open System.ServiceModel.Description
     open System.ServiceModel.Channels
     open Unity.Interception.PolicyInjection.Pipeline
+    open System
 
     // instance context extension type that creates a new child UnityContainer 
     //      on demand when a new instance context is created
@@ -67,6 +68,7 @@ module Hosting =
     let registerService<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
         let contractType = typedefof<'contract>
         let implementationType = typedefof<'implementation>
+        let proxyManager = container.Resolve<IProxyManager>()
 
         // this registers the proxy and performance Unity interceptions
         container.RegisterType(contractType, implementationType, 
@@ -75,11 +77,32 @@ module Hosting =
             //////////////////////////////////////////////////
             //////////////////////////////////////////////////
             
-            InterceptionBehavior<ProxyManagerInterceptionBehavior>(), 
-            InterceptionBehavior<PerformanceMonitorInterceptionBehavior>()) |> ignore       
+            // proxy manager release from transient
+            // TODO: this should use TLS instead of proxy manager class instance
+            (Utility.unityInterceptionBehavior 
+                (fun input inner ->
+                    use opId = proxyManager.GetTransientContext()
+                    inner input)
+            |> InterceptionBehavior),
+
+            (Utility.unityInterceptionBehavior
+                (fun input inner ->
+                    let timeFormat (tm:DateTime) = tm.ToLongTimeString()
+                    let enter = DateTime.Now
+                    let result = inner input
+                    let exit = DateTime.Now
+
+                    printfn "%s->%s: Method %s %s" (timeFormat enter) (timeFormat exit)
+                        input.MethodBase.Name
+                        (match result.Exception with
+                            | null -> sprintf "returned %A" result
+                            | ex -> sprintf "threw exception %s" result.Exception.Message)
+                    result)
+            |> InterceptionBehavior)) 
             
             //////////////////////////////////////////////////
             //////////////////////////////////////////////////
+            |> ignore
 
         // create and configure the endpoint for unity instance construction
         let endpoint = Policy.createServiceEndpoint contractType

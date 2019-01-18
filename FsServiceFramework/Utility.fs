@@ -89,9 +89,13 @@ module Utility =
     open Unity.Interception.PolicyInjection.Pipeline
     open Unity.Interception.InterceptionBehaviors
 
-    let unityInterceptionBehavior invoke =
+    let unityInterceptionBehavior 
+            (wrapper:IMethodInvocation->(IMethodInvocation->IMethodReturn)->IMethodReturn) =
         { new IInterceptionBehavior with
-            member this.Invoke(input:IMethodInvocation, getNext) = invoke input getNext
+            member this.Invoke(input:IMethodInvocation, getNext) = 
+                let innerInvoke innerInput = 
+                    getNext.Invoke().Invoke(innerInput, getNext)
+                wrapper input innerInvoke
             member this.GetRequiredInterfaces() = Type.EmptyTypes |> Array.toSeq
             member this.WillExecute = true }
 
