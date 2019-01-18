@@ -86,6 +86,14 @@ module Utility =
     open Microsoft.FSharp.Reflection
 
     open Unity
+    open Unity.Interception.PolicyInjection.Pipeline
+    open Unity.Interception.InterceptionBehaviors
+
+    let unityInterceptionBehavior invoke =
+        { new IInterceptionBehavior with
+            member this.Invoke(input:IMethodInvocation, getNext) = invoke input getNext
+            member this.GetRequiredInterfaces() = Type.EmptyTypes |> Array.toSeq
+            member this.WillExecute = true }
 
     // retrieves a custom attribute by template
     let getCustomAttribute<'attributeType when 'attributeType :> Attribute> (fromType:Type) =

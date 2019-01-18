@@ -12,6 +12,7 @@ module Hosting =
     open System.ServiceModel.Dispatcher
     open System.ServiceModel.Description
     open System.ServiceModel.Channels
+    open Unity.Interception.PolicyInjection.Pipeline
 
     // instance context extension type that creates a new child UnityContainer 
     //      on demand when a new instance context is created
@@ -73,7 +74,7 @@ module Hosting =
 
             //////////////////////////////////////////////////
             //////////////////////////////////////////////////
-
+            
             InterceptionBehavior<ProxyManagerInterceptionBehavior>(), 
             InterceptionBehavior<PerformanceMonitorInterceptionBehavior>()) |> ignore       
             
