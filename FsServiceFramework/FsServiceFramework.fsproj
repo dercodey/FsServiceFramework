@@ -56,7 +56,6 @@
     <Compile Include="Logging.fs" />
     <Compile Include="Tracing.fs" />
     <Compile Include="Nz2Testing.fs" />
-    <Compile Include="Performance.fs" />
     <Compile Include="PolicyEndpoint.fs" />
     <Compile Include="Proxy.fs" />
     <Compile Include="DurableInstance.fs" />
