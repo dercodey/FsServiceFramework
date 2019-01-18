@@ -82,6 +82,7 @@ module Utility =
     open System
     open System.Reflection
     open System.Collections.Generic
+
     open Microsoft.FSharp.Reflection
 
     open Unity
@@ -102,6 +103,23 @@ module Utility =
         | _ -> let newEntry = createFunc()  
                cache.Add(keyType, newEntry)
                newEntry
+
+    let updateHeaderWithContext<'t> (headers:System.ServiceModel.Channels.MessageHeaders) (current:'t) =
+        let headerName = typedefof<'t>.Name
+        let headerNamespace = typedefof<'t>.Namespace
+        let tcHeader = System.ServiceModel.MessageHeader<'t>(current).GetUntypedHeader(headerName, headerNamespace)
+        match headers.FindHeader(headerName, headerNamespace) with 
+        | -1 -> ()    // no header currently
+        | _ -> headers.RemoveAll(headerName, headerNamespace)
+        headers.Add(tcHeader)
+        headers
+
+    let getContextFromHeader<'t> (headers:System.ServiceModel.Channels.MessageHeaders) : 't =
+        let headerName = typedefof<'t>.Name
+        let headerNamespace = typedefof<'t>.Namespace
+        match headers.FindHeader(headerName, headerNamespace) with
+        | -1 ->  invalidArg "getContextFromHeader" "no message header for type" 
+        | index -> headers.GetHeader<'t>(index)
 
     let GetKnownTypes<'t>() =
         let forBindings= BindingFlags.Public ||| BindingFlags.NonPublic

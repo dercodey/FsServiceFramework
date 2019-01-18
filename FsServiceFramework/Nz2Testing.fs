@@ -54,13 +54,13 @@ module Nz2Testing =
             { new IClientMessageInspector with
                 member this.BeforeSendRequest (request, channel) = 
                     let testingContext = container.Resolve<TestingContext>()
-                    MessageHeaders.updateHeaderWithContext request.Headers testingContext |> ignore
+                    Utility.updateHeaderWithContext request.Headers testingContext |> ignore
                     null
                 member this.AfterReceiveReply (request, correlation) = () } :> obj
         let createDispatchMessageInspector (childContainer:IUnityContainer) =
             { new IDispatchMessageInspector with
                 member this.AfterReceiveRequest (request, channel, context) = 
-                    let testingContext = MessageHeaders.getContextFromHeader<TestingContext> request.Headers
+                    let testingContext = Utility.getContextFromHeader<TestingContext> request.Headers
                     container.RegisterInstance<TestingContext>(testingContext) |> ignore
                     null
                 member this.BeforeSendReply (reply, correlation) = () } :> obj

@@ -5,6 +5,7 @@ open System.Collections.Generic
 open System.ServiceModel
 open System.ServiceModel.Channels
 open System.ServiceModel.Dispatcher
+open System.ServiceModel.Description
 
 open FsServiceFramework.Utility
 
@@ -27,9 +28,21 @@ type ProxyManager(container:IUnityContainer) =
     let mutable proxiesInContext:List<obj> = null
     member x.GetFactory<'contract> () =
         let endpoint = Policy.createServiceEndpoint typedefof<'contract> 
-        MessageHeaders.addMessageInspectors endpoint
-            (container.ResolveAll<IClientMessageInspector>())
-            (container.ResolveAll<IDispatchMessageInspector>()) |> ignore
+
+        let clientInspectors = container.ResolveAll<IClientMessageInspector>()
+        let dispatchInspectors = (container.ResolveAll<IDispatchMessageInspector>())
+        { new IEndpointBehavior with 
+            member this.ApplyClientBehavior (endpoint, clientRuntime) =
+                clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add
+                dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+            member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
+                dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+            member this.AddBindingParameters (endpoint, bindingParameters) = ()
+            member this.Validate endpoint = () }
+        |> endpoint.Behaviors.Add
+
+        (* TODO is this being done, even if the factory is cached? 
+                what about lazy initialize? *)
         let createChannelFactory () = new ChannelFactory<'contract>(endpoint)
         cacheCreateOrGet<'contract, ChannelFactory<'contract>> factoryCache createChannelFactory
     interface IProxyManager with

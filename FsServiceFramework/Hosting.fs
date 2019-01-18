@@ -10,25 +10,30 @@ module Hosting =
     open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
     open Unity.Injection
     open System.ServiceModel.Dispatcher
+    open System.ServiceModel.Description
+    open System.ServiceModel.Channels
 
     // name used for the ProxyManager lifetime manager
     let nameProxyManagerLifetimeManager = "ProxyManager_LifetimeManager"
 
     let createHostContainer () =
         let pmLifetimeManager = new ContainerControlledLifetimeManager()
-        let container = new UnityContainer() :> IUnityContainer   
-        container.AddNewExtension<Interception>()
-                 .RegisterType<IProxyManager, ProxyManager>(pmLifetimeManager)
-                 .RegisterInstance<TraceContext>(Tracing.createTraceContext())
-                 .RegisterInstance<TestingContext>(Nz2Testing.createTestingContext())
-                 .RegisterInstance<ContainerControlledLifetimeManager>(
-                    nameProxyManagerLifetimeManager, pmLifetimeManager)
-            |> ignore
-        container
+        (new UnityContainer())
+            .AddNewExtension<Interception>()
+            .RegisterType<IProxyManager, ProxyManager>(pmLifetimeManager)
+            .RegisterInstance<TraceContext>(Tracing.createTraceContext())
+            .RegisterInstance<TestingContext>(Nz2Testing.createTestingContext())
+            // this is registered so it will be disposed, to shut down the services
+            .RegisterInstance<ContainerControlledLifetimeManager>(
+                nameProxyManagerLifetimeManager, pmLifetimeManager)
+        |> Tracing.registerMessageInspectors 
+        |> Nz2Testing.registerMessageInspectors
 
     let registerService<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
         let contractType = typedefof<'contract>
         let implementationType = typedefof<'implementation>
+
+        // this registers the proxy and performance Unity interceptions
         container.RegisterType(contractType, implementationType, 
             Interceptor<InterfaceInterceptor>(), 
             InterceptionBehavior<ProxyManagerInterceptionBehavior>(), 
@@ -36,15 +41,44 @@ module Hosting =
 
         // create and configure the endpoint for unity instance construction
         let endpoint = Policy.createServiceEndpoint contractType
-        MessageHeaders.addMessageInspectors endpoint 
-            (container.ResolveAll<IClientMessageInspector>()) 
-            (container.ResolveAll<IDispatchMessageInspector>()) |> ignore
-        endpoint.Contract.Behaviors.Add(Instance.createInstanceContractBehavior container contractType)
+
+        // add message inspectors that were registered for their respective contexts
+        let clientInspectors = container.ResolveAll<IClientMessageInspector>()
+        let dispatchInspectors = (container.ResolveAll<IDispatchMessageInspector>())
+        { new IEndpointBehavior with 
+            member this.ApplyClientBehavior (endpoint, clientRuntime) =
+                clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add
+                dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+            member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
+                dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+            member this.AddBindingParameters (endpoint, bindingParameters) = ()
+            member this.Validate endpoint = () }
+        |> endpoint.Behaviors.Add
+
+        // set up instancing
+        { new IContractBehavior with 
+            member this.AddBindingParameters (cd, ep, bpc) = ()
+            member this.ApplyClientBehavior (cd, ep, cr) = ()
+            member this.ApplyDispatchBehavior (cd, ep, dr) =
+                dr.InstanceProvider <- 
+                    { new IInstanceProvider with
+                        member this.GetInstance (ic:InstanceContext) =
+                            this.GetInstance(ic, null)
+                        member this.GetInstance (ic:InstanceContext, message:Message) = 
+                            let extension = ic.Extensions.Find<Instance.UnityInstanceContextExtension>()
+                            extension.ChildContainer.Resolve(contractType)
+                        member this.ReleaseInstance (ic:InstanceContext, instance:obj) = () }
+                { new IInstanceContextInitializer with 
+                    member this.Initialize (ic:InstanceContext, message:Message) = 
+                        ic.Extensions.Add(Instance.UnityInstanceContextExtension(container))
+                        ic.Extensions.Add(Instance.StorageProviderInstanceContextExtension(container)) }
+                |> dr.InstanceContextInitializers.Add
+            member this.Validate (cd:ContractDescription, ep:ServiceEndpoint) = () }
+        //Instance.createInstanceContractBehavior container contractType
+        |> endpoint.Contract.Behaviors.Add
 
         // create the host
-        let policyAttribute = Utility.getCustomAttribute<PolicyAttribute> contractType
-        let endpointAddress = policyAttribute.EndpointAddress contractType
-        let host = new ServiceHost(implementationType, endpointAddress)
+        let host = new ServiceHost(implementationType, endpoint.Address.Uri)
         host.AddServiceEndpoint(endpoint)
         container.RegisterInstance<ServiceHost>(
             sprintf "Host_for_<%s::%s>" implementationType.Namespace implementationType.Name, 
