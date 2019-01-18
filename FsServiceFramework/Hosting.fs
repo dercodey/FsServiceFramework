@@ -2,18 +2,18 @@
 
 module Hosting =
 
+    open System
     open System.ServiceModel
+    open System.ServiceModel.Dispatcher
+    open System.ServiceModel.Description
+    open System.ServiceModel.Channels
 
     open Unity
     open Unity.Lifetime
     open Unity.Interception.ContainerIntegration
     open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
     open Unity.Injection
-    open System.ServiceModel.Dispatcher
-    open System.ServiceModel.Description
-    open System.ServiceModel.Channels
-    open Unity.Interception.PolicyInjection.Pipeline
-    open System
+
 
     // instance context extension type that creates a new child UnityContainer 
     //      on demand when a new instance context is created
@@ -41,8 +41,7 @@ module Hosting =
             //////////////////////////////////////////////////
             //////////////////////////////////////////////////
 
-            .RegisterType<IClientMessageInspector>(InjectionFactory(CallContextOperations.createClientMessageInspector))
-            .RegisterType<IDispatchMessageInspector>(InjectionFactory(CallContextOperations.createDispatchMessageInspector))
+            // .RegisterType<IDispatchMessageInspector>(InjectionFactory(CallContextOperations.createDispatchMessageInspector))
 
             .RegisterType<IProxyManager, ProxyManager>(pmLifetimeManager)
             // this is registered so it will be disposed, to shut down the services
@@ -106,17 +105,37 @@ module Hosting =
             |> ignore
 
         // create and configure the endpoint for unity instance construction
-        let endpoint = Policy.createServiceEndpoint contractType
+        let endpoint = 
+            typedefof<'contract>
+            |> Utility.getCustomAttribute<PolicyAttribute> 
+            |> function 
+                policyAttribute -> 
+                    (ContractDescription.GetContract(typedefof<'contract>), 
+                        policyAttribute.Binding, 
+                        typedefof<'contract>
+                        |> policyAttribute.EndpointAddress 
+                        |> EndpointAddress)
+            |> ServiceEndpoint
 
         // add message inspectors that were registered for their respective contexts
-        let clientInspectors = container.ResolveAll<IClientMessageInspector>()
-        let dispatchInspectors = (container.ResolveAll<IDispatchMessageInspector>())
         { new IEndpointBehavior with 
-            member this.ApplyClientBehavior (endpoint, clientRuntime) =
-                clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add
-                dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+            member this.ApplyClientBehavior (endpoint, clientRuntime) = ()
             member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) =
-                dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+                { new IDispatchMessageInspector with
+                    member this.AfterReceiveRequest (request, channel, context) = 
+                        container.ResolveAll<CallContextBase>()
+                        |> Seq.map (fun prevObj -> prevObj.GetType())
+                        |> Seq.map (CallContextOperations.getContextFromHeader request.Headers)
+                        |> Seq.map 
+                            (fun updatedObj -> 
+                                container.RegisterInstance(updatedObj.GetType(), updatedObj))
+                        |> ignore
+                        null
+                    member this.BeforeSendReply (reply, correlation) =
+                        container.ResolveAll<CallContextBase>()
+                        |> Seq.map (CallContextOperations.updateHeaderWithContext reply.Headers)
+                        |> ignore }
+                |> endpointDispatcher.DispatchRuntime.MessageInspectors.Add
             member this.AddBindingParameters (endpoint, bindingParameters) = ()
             member this.Validate endpoint = () }
         |> endpoint.Behaviors.Add

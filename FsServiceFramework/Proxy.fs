@@ -28,12 +28,44 @@ type ProxyManager(container:IUnityContainer) =
     let proxiesInContext = List<obj>()
     member x.GetFactory<'contract> () =
         let createChannelFactory () = 
-            let endpoint = Policy.createServiceEndpoint typedefof<'contract> 
-            let clientInspectors = container.ResolveAll<IClientMessageInspector>()
-            let dispatchInspectors = (container.ResolveAll<IDispatchMessageInspector>())
+            let endpoint = 
+                typedefof<'contract>
+                |> getCustomAttribute<PolicyAttribute> 
+                |> function 
+                    policyAttribute -> 
+                        (ContractDescription.GetContract(typedefof<'contract>), 
+                            policyAttribute.Binding, 
+                            typedefof<'contract>
+                            |> policyAttribute.EndpointAddress 
+                            |> EndpointAddress)
+                |> ServiceEndpoint
             { new IEndpointBehavior with 
-                member this.ApplyClientBehavior (endpoint, clientRuntime) = clientInspectors |> Seq.iter clientRuntime.ClientMessageInspectors.Add; dispatchInspectors |> Seq.iter clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
-                member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) = dispatchInspectors |> Seq.iter endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+                member this.ApplyClientBehavior (endpoint, clientRuntime) = 
+                    { new IClientMessageInspector with
+                        member this.BeforeSendRequest (request, channel) = 
+                            container.ResolveAll<CallContextBase>()
+                            |> Seq.map (CallContextOperations.updateHeaderWithContext request.Headers)
+                            |> ignore
+                            null
+                        member this.AfterReceiveReply (request, correlation) = () }
+                    |> clientRuntime.ClientMessageInspectors.Add; 
+                    // need dispatch for callback dispatch
+                    { new IDispatchMessageInspector with
+                        member this.AfterReceiveRequest (request, channel, context) = 
+                            container.ResolveAll<CallContextBase>()
+                            |> Seq.map (fun prevObj -> prevObj.GetType())
+                            |> Seq.map (CallContextOperations.getContextFromHeader request.Headers)
+                            |> Seq.map 
+                                (fun updatedObj -> 
+                                    container.RegisterInstance(updatedObj.GetType(), updatedObj))
+                            |> ignore
+                            null
+                        member this.BeforeSendReply (reply, correlation) =
+                            container.ResolveAll<CallContextBase>()
+                            |> Seq.map (CallContextOperations.updateHeaderWithContext reply.Headers)
+                            |> ignore }
+                    |> clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+                member this.ApplyDispatchBehavior (endpoint, endpointDispatcher) = ()
                 member this.AddBindingParameters (endpoint, bindingParameters) = ()
                 member this.Validate endpoint = () }
             |> endpoint.Behaviors.Add

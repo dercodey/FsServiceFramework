@@ -11,8 +11,6 @@ let main argv =
     (new UnityContainer())
         .RegisterInstance<TraceContext>(TraceContext(Guid.NewGuid(), 1)) 
         .RegisterInstance<TestingContext>(TestingContext(VolatileTest (Guid.NewGuid())))
-        .RegisterType<IClientMessageInspector>(InjectionFactory(CallContextOperations.createClientMessageInspector))
-        .RegisterType<IDispatchMessageInspector>(InjectionFactory(CallContextOperations.createDispatchMessageInspector))
     |> function
         container -> 
             use proxyManager = new ProxyManager(container)

@@ -24,19 +24,4 @@ type IntranetPolicyAttribute() =
     inherit PolicyAttribute(NetTcpBinding())
 
 
-module Policy = 
-    open Unity
-    open Utility
-
-    // creates an endpoint for the contract type
-    let createServiceEndpoint (contractType:Type) =
-        contractType
-        |> getCustomAttribute<PolicyAttribute> 
-        |> function 
-            policyAttribute -> 
-                (ContractDescription.GetContract(contractType), 
-                    policyAttribute.Binding, 
-                    contractType
-                    |> policyAttribute.EndpointAddress 
-                    |> EndpointAddress)
-        |> ServiceEndpoint
+module Policy = ()
