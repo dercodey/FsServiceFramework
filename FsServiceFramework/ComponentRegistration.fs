@@ -21,10 +21,8 @@ module ComponentRegistration =
             member this.Attach (owner:InstanceContext) = ()
             member this.Detach (owner:InstanceContext) = ()
 
-    let registerService<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
-        let contractType = typedefof<'contract>
-        let implementationType = typedefof<'implementation>
-        let proxyManager = container.Resolve<IProxyManager>()        
+    let registerService_ (contractType:Type) (implementationType:Type) (container:IUnityContainer) : IUnityContainer =
+        let proxyManager = container.Resolve<IProxyManager>()
         container.RegisterType(contractType, implementationType,    // this registers the proxy and performance Unity interceptions
             Interceptor<InterfaceInterceptor>(),             
             (Utility.unityInterceptionBehavior (fun input inner -> 
@@ -43,13 +41,13 @@ module ComponentRegistration =
                 result) |> InterceptionBehavior)) |> ignore
 
         let endpoint =      // create and configure the endpoint for unity instance construction
-            typedefof<'contract>
+            contractType
             |> Utility.getCustomAttribute<PolicyAttribute> 
             |> function 
                 policyAttribute -> 
-                    ServiceEndpoint(ContractDescription.GetContract(typedefof<'contract>), 
+                    ServiceEndpoint(ContractDescription.GetContract(contractType), 
                         policyAttribute.Binding, 
-                        typedefof<'contract> |> policyAttribute.EndpointAddress |> EndpointAddress)
+                        contractType |> policyAttribute.EndpointAddress |> EndpointAddress)
 
         { new IEndpointBehavior with 
             member this.ApplyClientBehavior (_, _) = ()
@@ -81,14 +79,13 @@ module ComponentRegistration =
                         |> ignore }
                 |> dr.MessageInspectors.Add
 
-#if SELECT_OPERATION
-                dr.OperationSelector <- 
-                    { new IDispatchOperationSelector with 
-                        member this.SelectOperation(message) = 
-                            let operation = message.Headers.Action
-                            printfn "Selected operation is %s for %A" operation message
-                            operation }
-#endif
+                if false 
+                then dr.OperationSelector <- 
+                        { new IDispatchOperationSelector with 
+                            member this.SelectOperation(message) = 
+                                let operation = message.Headers.Action
+                                printfn "Selected operation is %s for %A" operation message
+                                operation }
 
             member this.AddBindingParameters (_, _) = ()
             member this.Validate _ = () }
@@ -107,6 +104,11 @@ module ComponentRegistration =
         container.RegisterInstance<ServiceHost>(
             sprintf "Host_for_<%s::%s>" implementationType.Namespace implementationType.Name, 
             host)
+
+    let registerService<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
+        let contractType = typedefof<'contract>
+        let implementationType = typedefof<'implementation>
+        registerService_ contractType implementationType container
 
     let registerFunction<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
         let contractType = typedefof<'contract>

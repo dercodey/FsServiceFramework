@@ -69,7 +69,12 @@ type ProxyManager(container:IUnityContainer) =
                 member this.AddBindingParameters (_, _) = ()
                 member this.Validate _ = () }
             |> endpoint.Behaviors.Add
+
             let factory = new ChannelFactory<'contract>(endpoint)
+
+            factory.Endpoint.Contract.Operations
+            |> Seq.iter (fun operationDescription -> "replace formatter behavior" |> ignore)
+
             printfn "factory endpoint name = %s" factory.Endpoint.Binding.Name
             factory
         cacheCreateOrGet<'contract, ChannelFactory<'contract>> factoryCache createChannelFactory
