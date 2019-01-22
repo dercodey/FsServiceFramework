@@ -29,51 +29,37 @@ type ProxyManager(container:IUnityContainer) =
     let proxiesInContext = List<obj>()
     member x.GetFactory<'contract> () =
         let createChannelFactory () = 
-            let endpoint = 
-                typedefof<'contract>
-                |> getCustomAttribute<PolicyAttribute> 
-                |> function 
-                    policyAttribute -> 
-                        (ContractDescription.GetContract(typedefof<'contract>), 
-                            policyAttribute.Binding, 
-                            typedefof<'contract>
-                            |> policyAttribute.EndpointAddress 
-                            |> EndpointAddress)
-                |> ServiceEndpoint
+
+            ///////////////////////////////////////////////////////////////////////////
+
+            let endpoint = PolicyEndpoint.create typedefof<'contract>
+
             { new IEndpointBehavior with 
                 member this.ApplyClientBehavior (_, clientRuntime) = 
+
                     { new IClientMessageInspector with
                         member this.BeforeSendRequest (request, _) = 
-                            container.ResolveAll<CallContextBase>()
-                            |> Seq.map (CallContextOperations.updateHeaderWithContext request.Headers)
-                            |> ignore
-                            null
+                            CallContextOperations.updateAllHeaders container |> ignore; null
                         member this.AfterReceiveReply (_, _) = () }
-                    |> clientRuntime.ClientMessageInspectors.Add;                     
+                    |> clientRuntime.ClientMessageInspectors.Add;    
+                    
                     { new IDispatchMessageInspector with        // need dispatch for callback dispatch
                         member this.AfterReceiveRequest (request, _, _) = 
-                            container.ResolveAll<CallContextBase>()
-                            |> Seq.map (fun prevObj -> prevObj.GetType())
-                            |> Seq.map (CallContextOperations.getContextFromHeader request.Headers)
-                            |> Seq.map 
-                                (fun updatedObj -> 
-                                    container.RegisterInstance(updatedObj.GetType(), updatedObj))
-                            |> ignore
-                            null
+                            CallContextOperations.updateAllContainerContexts request.Headers container |> ignore; null
                         member this.BeforeSendReply (reply, _) =
-                            container.ResolveAll<CallContextBase>()
-                            |> Seq.map (CallContextOperations.updateHeaderWithContext reply.Headers)
-                            |> ignore }
+                            CallContextOperations.updateAllHeaders container |> ignore }
                     |> clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add
+
                 member this.ApplyDispatchBehavior (_, _) = ()
                 member this.AddBindingParameters (_, _) = ()
                 member this.Validate _ = () }
             |> endpoint.Behaviors.Add
+            endpoint.Contract.Operations
+            |> Seq.iter (fun operationDescription -> "replace formatter behavior" |> ignore)
+
+            ////////////////////////////////////////////////////////////////////////////
 
             let factory = new ChannelFactory<'contract>(endpoint)
-
-            factory.Endpoint.Contract.Operations
-            |> Seq.iter (fun operationDescription -> "replace formatter behavior" |> ignore)
 
             printfn "factory endpoint name = %s" factory.Endpoint.Binding.Name
             factory

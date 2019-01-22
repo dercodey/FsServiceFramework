@@ -42,5 +42,16 @@ type StreamRenderPolicyAttribute() =
     inherit PolicyAttribute(NetTcpBinding())
 
 
+module PolicyEndpoint = 
 
-module Policy = ()
+    let create (contractType:Type) = 
+        contractType
+        |> Utility.getCustomAttribute<PolicyAttribute> 
+        |> function 
+            policyAttribute -> 
+                (ContractDescription.GetContract(contractType), 
+                    policyAttribute.Binding, 
+                    contractType
+                    |> policyAttribute.EndpointAddress 
+                    |> EndpointAddress)
+        |> ServiceEndpoint

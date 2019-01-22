@@ -40,14 +40,10 @@ module ComponentRegistration =
                         | ex -> sprintf "threw exception %s" ex.Message)
                 result) |> InterceptionBehavior)) |> ignore
 
-        let endpoint =      // create and configure the endpoint for unity instance construction
-            contractType
-            |> Utility.getCustomAttribute<PolicyAttribute> 
-            |> function 
-                policyAttribute -> 
-                    ServiceEndpoint(ContractDescription.GetContract(contractType), 
-                        policyAttribute.Binding, 
-                        contractType |> policyAttribute.EndpointAddress |> EndpointAddress)
+        ////////////////////////////////////////////////////////////
+
+        // create and configure the endpoint for unity instance construction
+        let endpoint = PolicyEndpoint.create contractType
 
         { new IEndpointBehavior with 
             member this.ApplyClientBehavior (_, _) = ()
@@ -67,16 +63,9 @@ module ComponentRegistration =
 
                 { new IDispatchMessageInspector with    // add dispatch message inspectors for restoring call context objects
                     member this.AfterReceiveRequest (request, _, _) = 
-                        container.ResolveAll<CallContextBase>()
-                        |> Seq.map (fun prevObj -> prevObj.GetType())
-                        |> Seq.map (CallContextOperations.getContextFromHeader request.Headers)
-                        |> Seq.map (fun updatedObj -> container.RegisterInstance(updatedObj.GetType(), updatedObj))
-                        |> ignore
-                        null
+                        CallContextOperations.updateAllContainerContexts request.Headers container |> ignore; null
                     member this.BeforeSendReply (reply, _) = 
-                        container.ResolveAll<CallContextBase>()
-                        |> Seq.map (CallContextOperations.updateHeaderWithContext reply.Headers)
-                        |> ignore }
+                        CallContextOperations.updateAllHeaders container |> ignore }
                 |> dr.MessageInspectors.Add
 
                 if false 
@@ -90,6 +79,8 @@ module ComponentRegistration =
             member this.AddBindingParameters (_, _) = ()
             member this.Validate _ = () }
         |> endpoint.Behaviors.Add
+
+        ////////////////////////////////////////////////////////////
 
         // create the host and add the configured endpoint
         let host = new ServiceHost(implementationType, endpoint.Address.Uri)
