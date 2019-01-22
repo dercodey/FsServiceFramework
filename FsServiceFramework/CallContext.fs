@@ -10,34 +10,40 @@ type CallContextBase() =
 
 module CallContextOperations = 
     open Unity
-
-    let updateHeaderWithContext (headers:MessageHeaders) (current:CallContextBase) =
-        let headerName = current.GetType().Name
-        let headerNamespace = current.GetType().Namespace
-        let tcHeader = System.ServiceModel.MessageHeader(current).GetUntypedHeader(headerName, headerNamespace)
-        match headers.FindHeader(headerName, headerNamespace) with 
-        | -1 -> ()    // no header currently
-        | _ -> headers.RemoveAll(headerName, headerNamespace)
-        headers.Add(tcHeader)
-        headers
+    open System.ServiceModel.Dispatcher
 
     let updateAllContainerContexts (headers:MessageHeaders) (container:IUnityContainer) = 
+        let updateHeaderWithContext (headers:MessageHeaders) (current:CallContextBase) =
+            let headerName = current.GetType().Name
+            let headerNamespace = current.GetType().Namespace
+            let tcHeader = System.ServiceModel.MessageHeader(current).GetUntypedHeader(headerName, headerNamespace)
+            match headers.FindHeader(headerName, headerNamespace) with 
+            | -1 -> ()    // no header currently
+            | _ -> headers.RemoveAll(headerName, headerNamespace)
+            headers.Add(tcHeader)
+            headers
         container.ResolveAll<CallContextBase>()
         |> Seq.map (updateHeaderWithContext headers)
 
-    let getContextFromHeader (headers:System.ServiceModel.Channels.MessageHeaders) (forType:Type) =
-        let headerName = forType.Name
-        let headerNamespace = forType.Namespace
-        match headers.FindHeader(headerName, headerNamespace) with
-        | -1 ->  invalidArg "getContextFromHeader" "no message header for type" 
-        | index -> headers.GetHeader<CallContextBase>(index)       
-
     let updateAllHeaders (container:IUnityContainer) (headers:MessageHeaders) = 
+        let getContextFromHeader (headers:System.ServiceModel.Channels.MessageHeaders) (forType:Type) =
+            let headerName = forType.Name
+            let headerNamespace = forType.Namespace
+            match headers.FindHeader(headerName, headerNamespace) with
+            | -1 ->  invalidArg "getContextFromHeader" "no message header for type" 
+            | index -> headers.GetHeader<CallContextBase>(index)       
         container.ResolveAll<CallContextBase>()
             |> Seq.map (fun o -> o.GetType())
             |> Seq.map (getContextFromHeader headers)
             |> Seq.map (fun uo -> container.RegisterInstance(uo.GetType(), uo))
 
+    let createInspectors container =
+        (   { new IClientMessageInspector with
+                member this.BeforeSendRequest (request, _) = updateAllHeaders container |> ignore; null
+                member this.AfterReceiveReply (_, _) = () },
+            { new IDispatchMessageInspector with  
+                member this.AfterReceiveRequest (request, _, _) = updateAllContainerContexts request.Headers container |> ignore; null
+                member this.BeforeSendReply (reply, _) = updateAllHeaders container |> ignore })
 
 [<DataContract>]
 type TraceContext(correlationId:Guid, sequenceNumber:int) =

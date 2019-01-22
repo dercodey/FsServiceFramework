@@ -14,6 +14,12 @@ type DurableInstanceContex = {
 
 module Instance =
 
+    //{ new IInstanceContextInitializer with 
+    //    member this.Initialize (ic, _) = 
+    //        ic.Extensions.Add(UnityInstanceContextExtension(container))
+    //        ic.Extensions.Add(Instance.StorageProviderInstanceContextExtension(container)) }
+    //        |> dr.InstanceContextInitializers.Add }
+
     (* TODO: why is this here? *)
     type StorageProviderInstanceContextExtension(container:IUnityContainer) =
         interface IExtension<InstanceContext> with

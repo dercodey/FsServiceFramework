@@ -13,6 +13,7 @@ module LambdaServiceRegistration =
     open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
     open Unity.Injection
     open System.ServiceModel.Activation
+    open System.Data.Entity.Infrastructure.Interception
 
     [<ServiceContract>]
     [<IntranetPolicy>]
@@ -72,20 +73,9 @@ module LambdaServiceRegistration =
                         member this.GetInstance (ic) = box (LambdaService())
                         member this.GetInstance (ic, _) = box (LambdaService())
                         member this.ReleaseInstance (_, _) = () }
-
-                { new IDispatchMessageInspector with    // add dispatch message inspectors for restoring call context objects
-                    member this.AfterReceiveRequest (request, _, _) = 
-                        container.ResolveAll<CallContextBase>()
-                        |> Seq.map (fun prevObj -> prevObj.GetType())
-                        |> Seq.map (CallContextOperations.getContextFromHeader request.Headers)
-                        |> Seq.map (fun updatedObj -> container.RegisterInstance(updatedObj.GetType(), updatedObj))
-                        |> ignore
-                        null
-                    member this.BeforeSendReply (reply, _) = 
-                        container.ResolveAll<CallContextBase>()
-                        |> Seq.map (CallContextOperations.updateHeaderWithContext reply.Headers)
-                        |> ignore }
-                |> dr.MessageInspectors.Add
+                let (_, dispatchMessageInspector) = 
+                    CallContextOperations.createInspectors container
+                dr.MessageInspectors.Add dispatchMessageInspector
 
                 dr.OperationSelector <- 
                     { new IDispatchOperationSelector with 

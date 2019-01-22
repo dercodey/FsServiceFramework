@@ -40,47 +40,16 @@ module ComponentRegistration =
                         | ex -> sprintf "threw exception %s" ex.Message)
                 result) |> InterceptionBehavior)) |> ignore
 
-        ////////////////////////////////////////////////////////////
+        let unityInstanceContextExtension = UnityInstanceContextExtension(container)
 
         // create and configure the endpoint for unity instance construction
-        let endpoint = PolicyEndpoint.create contractType
-
-        { new IEndpointBehavior with 
-            member this.ApplyClientBehavior (_, _) = ()
-            member this.ApplyDispatchBehavior (_, endpointDispatcher) =
-                let dr = endpointDispatcher.DispatchRuntime
-                dr.InstanceProvider <-                     
-                    { new IInstanceProvider with // add instance provider to resolve from unity container
-                        member this.GetInstance (ic) = this.GetInstance(ic, null)
-                        member this.GetInstance (ic, _) = ic.Extensions.Find<UnityInstanceContextExtension>().ChildContainer.Resolve(contractType)
-                        member this.ReleaseInstance (_, _) = () }
-
-                { new IInstanceContextInitializer with 
-                    member this.Initialize (ic, _) = 
-                        ic.Extensions.Add(UnityInstanceContextExtension(container))
-                        ic.Extensions.Add(Instance.StorageProviderInstanceContextExtension(container)) }
-                |> dr.InstanceContextInitializers.Add
-
-                { new IDispatchMessageInspector with    // add dispatch message inspectors for restoring call context objects
-                    member this.AfterReceiveRequest (request, _, _) = 
-                        CallContextOperations.updateAllContainerContexts request.Headers container |> ignore; null
-                    member this.BeforeSendReply (reply, _) = 
-                        CallContextOperations.updateAllHeaders container |> ignore }
-                |> dr.MessageInspectors.Add
-
-                if false 
-                then dr.OperationSelector <- 
-                        { new IDispatchOperationSelector with 
-                            member this.SelectOperation(message) = 
-                                let operation = message.Headers.Action
-                                printfn "Selected operation is %s for %A" operation message
-                                operation }
-
-            member this.AddBindingParameters (_, _) = ()
-            member this.Validate _ = () }
-        |> endpoint.Behaviors.Add
-
-        ////////////////////////////////////////////////////////////
+        let endpoint = 
+            PolicyEndpoint.createDispatchEndpoint contractType 
+                container unityInstanceContextExtension
+                (fun instanceProvider -> 
+                    let fromProvider = instanceProvider.ChildContainer.Resolve(contractType)
+                    let fromClosure = unityInstanceContextExtension.ChildContainer.Resolve(contractType)
+                    fromClosure)
 
         // create the host and add the configured endpoint
         let host = new ServiceHost(implementationType, endpoint.Address.Uri)

@@ -43,8 +43,10 @@ type StreamRenderPolicyAttribute() =
 
 
 module PolicyEndpoint = 
+    open System.ServiceModel.Dispatcher
+    open Unity
 
-    let create (contractType:Type) = 
+    let createBase (contractType:Type) = 
         contractType
         |> Utility.getCustomAttribute<PolicyAttribute> 
         |> function 
@@ -55,3 +57,69 @@ module PolicyEndpoint =
                     |> policyAttribute.EndpointAddress 
                     |> EndpointAddress)
         |> ServiceEndpoint
+        |> function 
+            endpoint -> 
+                endpoint.Contract.Operations
+                |> Seq.iter (fun operationDescription -> "replace formatter behavior" |> ignore) 
+                endpoint
+
+    let createDispatchEndpoint<'TInstanceProvider 
+                                when 'TInstanceProvider :> IExtension<InstanceContext>> 
+            (contractType:Type) 
+            (container:IUnityContainer)
+            (instanceProvider:'TInstanceProvider) 
+            (getInstance:'TInstanceProvider->obj) = 
+        createBase contractType
+        |> function
+            endpoint -> 
+                { new IEndpointBehavior with 
+                    member this.ApplyClientBehavior (_, _) = ()
+                    member this.ApplyDispatchBehavior (_, endpointDispatcher) =
+                        { new IInstanceContextInitializer with 
+                            member this.Initialize (ic, _) = 
+                                ic.Extensions.Add(instanceProvider) }
+                        |> endpointDispatcher.DispatchRuntime.InstanceContextInitializers.Add
+
+                        endpointDispatcher.DispatchRuntime.InstanceProvider <-                     
+                            { new IInstanceProvider with // add instance provider to resolve from unity container
+                                member this.GetInstance (ic) = 
+                                    this.GetInstance(ic, null)
+                                member this.GetInstance (ic, _) = 
+                                    ic.Extensions.Find<'TInstanceProvider>() 
+                                    |> getInstance
+                                member this.ReleaseInstance (_, _) = () }
+
+                        let (_, dispatchMessageInspector) = 
+                            CallContextOperations.createInspectors container
+                        dispatchMessageInspector
+                        |> endpointDispatcher.DispatchRuntime.MessageInspectors.Add
+
+                        if false 
+                        then endpointDispatcher.DispatchRuntime.OperationSelector <- 
+                                { new IDispatchOperationSelector with 
+                                    member this.SelectOperation(message) = 
+                                        let operation = message.Headers.Action
+                                        printfn "Selected operation is %s for %A" operation message
+                                        operation }
+
+                    member this.AddBindingParameters (_, _) = ()
+                    member this.Validate _ = () }
+                |> endpoint.Behaviors.Add
+                endpoint
+
+    let createClientEndpoint (contractType:Type) 
+            (container:IUnityContainer) = 
+        createBase contractType
+        |> function
+            endpoint ->         
+                { new IEndpointBehavior with 
+                    member this.ApplyClientBehavior (_, clientRuntime) = 
+                        let (clientMessageInspector, dispatchMessageInspector) = 
+                            CallContextOperations.createInspectors container
+                        clientRuntime.ClientMessageInspectors.Add clientMessageInspector
+                        clientRuntime.CallbackDispatchRuntime.MessageInspectors.Add dispatchMessageInspector
+                    member this.ApplyDispatchBehavior (_, _) = ()
+                    member this.AddBindingParameters (_, _) = ()
+                    member this.Validate _ = () }
+                |> endpoint.Behaviors.Add
+                endpoint
