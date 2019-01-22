@@ -53,8 +53,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="WorklistManagerData.fs" />
-    <Compile Include="IWorklistManager.fs" />
+    <Compile Include="Worklist.Contracts.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

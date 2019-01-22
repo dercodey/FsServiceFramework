@@ -47,8 +47,7 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
-    <Compile Include="TrendingManagerData.fs" />
-    <Compile Include="ITrendingManager.fs" />
+    <Compile Include="Trending.Contracts.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
