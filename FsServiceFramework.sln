@@ -33,6 +33,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleServices", "ExampleS
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Import.Contracts", "Import.Contracts\Import.Contracts.fsproj", "{1F0F7C25-4229-4763-AE9A-E16ED328B837}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Import.Services", "Import.Services\Import.Services.fsproj", "{42E8AADD-52D9-414B-B6CE-1E6E67567FC3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{1F0F7C25-4229-4763-AE9A-E16ED328B837}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F0F7C25-4229-4763-AE9A-E16ED328B837}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F0F7C25-4229-4763-AE9A-E16ED328B837}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42E8AADD-52D9-414B-B6CE-1E6E67567FC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42E8AADD-52D9-414B-B6CE-1E6E67567FC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42E8AADD-52D9-414B-B6CE-1E6E67567FC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42E8AADD-52D9-414B-B6CE-1E6E67567FC3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,6 +99,7 @@ Global
 		{A6FF8B93-85BD-4CBF-9820-E697E5123BE1} = {EAE82A34-0B7D-441E-8F0E-60EF34E6CB01}
 		{5E928AF5-2363-4C09-A398-E469CDE7E720} = {EAE82A34-0B7D-441E-8F0E-60EF34E6CB01}
 		{1F0F7C25-4229-4763-AE9A-E16ED328B837} = {A6FF8B93-85BD-4CBF-9820-E697E5123BE1}
+		{42E8AADD-52D9-414B-B6CE-1E6E67567FC3} = {A6FF8B93-85BD-4CBF-9820-E697E5123BE1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {13A9E4FB-718E-4CE7-83E8-9F7B8B1BC233}

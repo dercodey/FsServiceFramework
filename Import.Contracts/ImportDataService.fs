@@ -13,10 +13,10 @@ type ImportImage() =
     member val Label = String.Empty with get, set
 
     [<DataMember(EmitDefaultValue=false, IsRequired=true)>] 
-    member val Width = 0 with get, set
+    member val Width = 1 with get, set
 
     [<DataMember(EmitDefaultValue=false, IsRequired=true)>] 
-    member val Height = 0 with get, set
+    member val Height = 1 with get, set
 
     [<DataMember(EmitDefaultValue=false, IsRequired=true)>] 
     member val Pixels = [| 0uy |] with get, set
@@ -24,6 +24,7 @@ type ImportImage() =
 [<ServiceContract>]
 [<DicomPolicy>]
 type IImportManager =
+    [<OperationContract>] abstract EchoImage: inImage:ImportImage -> ImportImage
     [<OperationContract>] abstract ImportPortalImage: inImage:ImportImage -> int
     [<OperationContract>] abstract ImportSpatialRegistration: sro:float[] -> int
 

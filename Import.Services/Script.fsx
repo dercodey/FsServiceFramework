@@ -2,7 +2,7 @@
 // See the 'F# Tutorial' project for more help.
 
 #load "Library1.fs"
-open Import.Contracts
+open Import.Services
 
 // Define your library scripting code here
 
