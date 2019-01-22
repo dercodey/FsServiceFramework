@@ -52,9 +52,9 @@ namespace FsServiceFramework.UnitTest
 
 
             var container = Hosting.createHostContainer();
-            ComponentRegistration.registerService<ITrendingManager, TrendingManagerService>(container);
-            ComponentRegistration.registerService<ITrendingEngine, TrendingEngineService>(container);
-            ComponentRegistration.registerService<ITrendingDataAccess, TrendingDataAccess>(container);
+            ComponentRegistration.registerService_(typeof(ITrendingManager), typeof(TrendingManagerService), container);
+            ComponentRegistration.registerService_(typeof(ITrendingEngine), typeof(TrendingEngineService), container);
+            ComponentRegistration.registerService_(typeof(ITrendingDataAccess), typeof(TrendingDataAccess), container);
             ComponentRegistration.registerFunction<ITrendCalculationFunction, TrendCalculation>(container);
             ComponentRegistration.registerRepositoryInstance(repository, container);
 

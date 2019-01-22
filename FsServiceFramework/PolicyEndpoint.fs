@@ -122,25 +122,15 @@ module PolicyEndpoint =
                         endpoint
 
 
-    let applyDispatchEndpointBehavior 
-            (runtimeUpdater:DispatchRuntime->DispatchRuntime) 
-            (endpoint:ServiceEndpoint) =
-        { new IEndpointBehavior with 
-            member this.ApplyDispatchBehavior (_, endpointDispatcher) = 
-                runtimeUpdater endpointDispatcher.DispatchRuntime |> ignore
-            member this.ApplyClientBehavior (_, _) = ()
-            member this.AddBindingParameters (_, _) = ()
-            member this.Validate _ = () }
-        |> endpoint.Behaviors.Add
-        endpoint
-
-    let applyClientEndpointBehavior 
-            (runtimeUpdater:ClientRuntime->ClientRuntime) 
+    let applyEndpointBehavior 
+            (clientRuntimeUpdater:ClientRuntime->ClientRuntime) 
+            (dispatchRuntimeUpdater:DispatchRuntime->DispatchRuntime) 
             (endpoint:ServiceEndpoint) =
         { new IEndpointBehavior with 
             member this.ApplyClientBehavior (_, clientRuntime) = 
-                runtimeUpdater clientRuntime |> ignore
-            member this.ApplyDispatchBehavior (_, _) = ()
+                clientRuntimeUpdater clientRuntime |> ignore
+            member this.ApplyDispatchBehavior (_, endpointDispatcher) = 
+                dispatchRuntimeUpdater endpointDispatcher.DispatchRuntime |> ignore
             member this.AddBindingParameters (_, _) = ()
             member this.Validate _ = () }
         |> endpoint.Behaviors.Add
@@ -148,46 +138,43 @@ module PolicyEndpoint =
         
 
     let createDispatchEndpoint (contractType:Type) (container:IUnityContainer)
-            (getInstance:unit->obj) = 
-        let runtimeUpdater (runtime:DispatchRuntime) =
-            container
-            |> CallContextOperations.createInspectors 
-            |> snd
-            |> runtime.MessageInspectors.Add
-
-            { new IInstanceProvider with // add instance provider to resolve from unity container
-                member this.GetInstance (ic) = this.GetInstance(ic, null)
-                member this.GetInstance (ic, _) = getInstance()
-                member this.ReleaseInstance (_, _) = () }
-            |> function provider -> runtime.InstanceProvider <- provider                
-
-            contractType
-            |> Utility.getCustomAttribute<PolicyAttribute> 
-            |> function policyAttribute -> policyAttribute.CustomOperationSelector
-            |> function
-                | Some selector -> 
-                    { new IDispatchOperationSelector with 
-                        member this.SelectOperation(message) = selector message } 
-                    |> function 
-                        operationSelector -> 
-                            runtime.OperationSelector <- operationSelector 
-                | None -> ()
-            runtime
-
+            (getInstance:unit->obj) =
         contractType
         |> createBaseEndpoint 
-        |> applyDispatchEndpointBehavior runtimeUpdater
+        |> applyEndpointBehavior id 
+            (fun runtime -> 
+                container
+                |> CallContextOperations.createInspectors |> snd
+                |> runtime.MessageInspectors.Add
+
+                { new IInstanceProvider with // add instance provider to resolve from unity container
+                    member this.GetInstance (ic) = this.GetInstance(ic, null)
+                    member this.GetInstance (ic, _) = getInstance()
+                    member this.ReleaseInstance (_, _) = () }
+                |> function provider -> runtime.InstanceProvider <- provider                
+
+                contractType
+                |> Utility.getCustomAttribute<PolicyAttribute> 
+                |> function policyAttribute -> policyAttribute.CustomOperationSelector
+                |> function
+                    | Some selector -> 
+                        { new IDispatchOperationSelector with 
+                            member this.SelectOperation(message) = selector message } 
+                        |> function 
+                            operationSelector -> 
+                                runtime.OperationSelector <- operationSelector 
+                    | None -> ()
+                runtime)
                 
     let createClientEndpoint (contractType:Type) (container:IUnityContainer) = 
-        let runtimeUpdater (runtime:ClientRuntime) = 
-            container
-            |> CallContextOperations.createInspectors 
-            |> function
-                (client, dispatch) ->
-                    runtime.ClientMessageInspectors.Add client
-                    runtime.CallbackDispatchRuntime.MessageInspectors.Add dispatch
-            runtime
-
         contractType
         |> createBaseEndpoint 
-        |> applyClientEndpointBehavior runtimeUpdater
+        |> applyEndpointBehavior 
+            (fun runtime ->
+                container
+                |> CallContextOperations.createInspectors 
+                |> function
+                    (client, dispatch) ->
+                        runtime.ClientMessageInspectors.Add client
+                        runtime.CallbackDispatchRuntime.MessageInspectors.Add dispatch
+                runtime) id

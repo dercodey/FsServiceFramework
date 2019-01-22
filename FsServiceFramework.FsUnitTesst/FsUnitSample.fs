@@ -50,9 +50,9 @@ type ``test lambda service`` () =
 
         // register services and IoC container
         container
-        |> ComponentRegistration.registerService<ITrendingManager, TrendingManagerService>
-        |> ComponentRegistration.registerService<ITrendingEngine, TrendingEngineService>
-        |> ComponentRegistration.registerService<ITrendingDataAccess, TrendingDataAccess>
+        |> ComponentRegistration.registerService_ typedefof<ITrendingManager> typedefof<TrendingManagerService>
+        |> ComponentRegistration.registerService_ typedefof<ITrendingEngine> typedefof<TrendingEngineService>
+        |> ComponentRegistration.registerService_ typedefof<ITrendingDataAccess> typedefof<TrendingDataAccess>
         |> ComponentRegistration.registerFunction<ITrendCalculationFunction, TrendCalculation>
         |> ComponentRegistration.registerRepositoryInstance<int, SiteTrendingSeries> repository
         |> Hosting.startServices 

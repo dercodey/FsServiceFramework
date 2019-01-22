@@ -10,10 +10,34 @@ module ComponentRegistration =
     open Unity
     open Unity.Interception.ContainerIntegration
     open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
+    open Unity.Interception.InterceptionBehaviors
+    open Unity.Interception.PolicyInjection.Pipeline
     open Unity.Injection
-
+    
     let registerService_ (contractType:Type) (implementationType:Type) (container:IUnityContainer) : IUnityContainer =
+
         let proxyManager = container.Resolve<IProxyManager>()
+
+        (fun input inner -> 
+            use opId = proxyManager.GetTransientContext()
+            inner input)
+        |> Utility.unityInterceptionBehavior  
+        |> container.RegisterInstance<IInterceptionBehavior> |> ignore
+
+        (fun (input:IMethodInvocation) (inner:IMethodInvocation->IMethodReturn) ->
+            let timeFormat (tm:DateTime) = tm.ToLongTimeString()
+            let enter = DateTime.Now
+            let result = inner input
+            let exit = DateTime.Now
+            printfn "%s->%s: Method %s %s" (timeFormat enter) (timeFormat exit)
+                input.MethodBase.Name
+                (match result.Exception with 
+                    | null -> sprintf "returned %A" result 
+                    | ex -> sprintf "threw exception %s" ex.Message)
+            result)
+        |> Utility.unityInterceptionBehavior
+        |> container.RegisterInstance<IInterceptionBehavior> |> ignore
+
         container.RegisterType(contractType, implementationType,    // this registers the proxy and performance Unity interceptions
             Interceptor<InterfaceInterceptor>(),             
             (Utility.unityInterceptionBehavior (fun input inner -> 
@@ -44,11 +68,6 @@ module ComponentRegistration =
         container.RegisterInstance<ServiceHost>(
             sprintf "Host_for_<%s::%s>" implementationType.Namespace implementationType.Name, 
             host)
-
-    let registerService<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
-        let contractType = typedefof<'contract>
-        let implementationType = typedefof<'implementation>
-        registerService_ contractType implementationType container
 
     let registerFunction<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
         let contractType = typedefof<'contract>
