@@ -12,15 +12,6 @@ module ComponentRegistration =
     open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
     open Unity.Injection
 
-    // instance context extension type that creates a new child UnityContainer 
-    //      on demand when a new instance context is created
-    type UnityInstanceContextExtension(container:IUnityContainer) =
-        let childContainer = lazy ( container.CreateChildContainer() )
-        member this.ChildContainer = childContainer.Value
-        interface IExtension<InstanceContext> with
-            member this.Attach (owner:InstanceContext) = ()
-            member this.Detach (owner:InstanceContext) = ()
-
     let registerService_ (contractType:Type) (implementationType:Type) (container:IUnityContainer) : IUnityContainer =
         let proxyManager = container.Resolve<IProxyManager>()
         container.RegisterType(contractType, implementationType,    // this registers the proxy and performance Unity interceptions
@@ -40,16 +31,11 @@ module ComponentRegistration =
                         | ex -> sprintf "threw exception %s" ex.Message)
                 result) |> InterceptionBehavior)) |> ignore
 
-        let unityInstanceContextExtension = UnityInstanceContextExtension(container)
-
         // create and configure the endpoint for unity instance construction
         let endpoint = 
+            let instanceChildContainer = lazy ( container.CreateChildContainer() )
             PolicyEndpoint.createDispatchEndpoint contractType 
-                container unityInstanceContextExtension
-                (fun instanceProvider -> 
-                    let fromProvider = instanceProvider.ChildContainer.Resolve(contractType)
-                    let fromClosure = unityInstanceContextExtension.ChildContainer.Resolve(contractType)
-                    fromClosure)
+                container (fun _ -> instanceChildContainer.Value.Resolve(contractType))
 
         // create the host and add the configured endpoint
         let host = new ServiceHost(implementationType, endpoint.Address.Uri)

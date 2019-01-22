@@ -63,30 +63,18 @@ module PolicyEndpoint =
                 |> Seq.iter (fun operationDescription -> "replace formatter behavior" |> ignore) 
                 endpoint
 
-    let createDispatchEndpoint<'TInstanceProvider 
-                                when 'TInstanceProvider :> IExtension<InstanceContext>> 
-            (contractType:Type) 
-            (container:IUnityContainer)
-            (instanceProvider:'TInstanceProvider) 
-            (getInstance:'TInstanceProvider->obj) = 
+    let createDispatchEndpoint (contractType:Type) (container:IUnityContainer)
+            (getInstance:unit->obj) = 
         createBase contractType
         |> function
             endpoint -> 
                 { new IEndpointBehavior with 
                     member this.ApplyClientBehavior (_, _) = ()
                     member this.ApplyDispatchBehavior (_, endpointDispatcher) =
-                        { new IInstanceContextInitializer with 
-                            member this.Initialize (ic, _) = 
-                                ic.Extensions.Add(instanceProvider) }
-                        |> endpointDispatcher.DispatchRuntime.InstanceContextInitializers.Add
-
                         endpointDispatcher.DispatchRuntime.InstanceProvider <-                     
                             { new IInstanceProvider with // add instance provider to resolve from unity container
-                                member this.GetInstance (ic) = 
-                                    this.GetInstance(ic, null)
-                                member this.GetInstance (ic, _) = 
-                                    ic.Extensions.Find<'TInstanceProvider>() 
-                                    |> getInstance
+                                member this.GetInstance (ic) = this.GetInstance(ic, null)
+                                member this.GetInstance (ic, _) = getInstance()
                                 member this.ReleaseInstance (_, _) = () }
 
                         let (_, dispatchMessageInspector) = 
