@@ -18,10 +18,15 @@ type PolicyAttribute(binding:Channels.Binding) =
     member this.EndpointAddress (contractType:Type) = 
         let builder = UriBuilder(this.Binding.Scheme, "localhost", -1, contractType.Name)
         builder.Uri
-    member this.CustomRequestSerializer 
-        : option<(IClientMessageFormatter->obj[]->Message)
-                    * (IDispatchMessageFormatter->Message->obj[])> = None
-    member this.CustomOperationSelector : option<Message->string> = None
+
+    abstract member CustomRequestSerializer : 
+        option<(IClientMessageFormatter->obj[]->Message)
+            * (IDispatchMessageFormatter->Message->obj[])>
+    default this.CustomRequestSerializer = None
+
+    abstract member CustomOperationSelector : option<Message->string>
+    default this.CustomOperationSelector = None
+
 
 [<AttributeUsage(AttributeTargets.Interface)>]
 type ComponentPolicyAttribute() =
@@ -32,17 +37,23 @@ type IntranetPolicyAttribute() =
     inherit PolicyAttribute(NetTcpBinding())
 
 [<AttributeUsage(AttributeTargets.Interface)>]
-type DicomPolicyAttribute() =
-    inherit PolicyAttribute(NetTcpBinding())
-
-[<AttributeUsage(AttributeTargets.Interface)>]
 type RestPolicyAttribute() =
     inherit PolicyAttribute(BasicHttpBinding())
 
 [<AttributeUsage(AttributeTargets.Interface)>]
-type StreamRenderPolicyAttribute() =
+type DicomPolicyAttribute() =
     inherit PolicyAttribute(NetTcpBinding())
 
+[<AttributeUsage(AttributeTargets.Interface)>]
+type StreamRenderPolicyAttribute() =
+    inherit PolicyAttribute(NetTcpBinding())
+    override this.CustomRequestSerializer =
+        let requestSerializer (innerFormatter:IClientMessageFormatter) (p:obj[]) =
+            innerFormatter.SerializeRequest(MessageVersion.Default, p)
+        let requestDeserializer (innerFormatter:IDispatchMessageFormatter) (msg:Message) =
+            let p = Unchecked.defaultof<obj[]>
+            innerFormatter.DeserializeRequest(msg, p); p
+        Some (requestSerializer, requestDeserializer)
 
 module PolicyEndpoint = 
 
@@ -51,7 +62,7 @@ module PolicyEndpoint =
             (deserializeRequest:IDispatchMessageFormatter->Message->obj[])
             (operationDescription:OperationDescription) =
 
-        let innerFormatter =             
+        let innerFormatter =
             // look for and remove the DataContract behavior if it is present
             match operationDescription.Behaviors.Remove<DataContractSerializerOperationBehavior>() with 
             | dcsob when dcsob <> null -> dcsob :> IOperationBehavior
@@ -61,41 +72,55 @@ module PolicyEndpoint =
                 | xsob when xsob <> null -> xsob :> IOperationBehavior
                 | _ ->  raise (Exception("no inner formatter"))
 
-        let customFormatterBehavior = 
-            { new IOperationBehavior with
-                member this.AddBindingParameters(description, bpc) = innerFormatter.AddBindingParameters(description, bpc)
-                member this.ApplyClientBehavior(description:OperationDescription, runtime:ClientOperation) =             
-                    if (runtime.Formatter = null)
-                    then innerFormatter.ApplyClientBehavior(description, runtime)
-                    let innerFormatter = runtime.Formatter
-                    runtime.Formatter <- 
-                        { new IClientMessageFormatter with
-                            member this.SerializeRequest(messageVersion, parameters) =
-                                serializeRequest innerFormatter parameters
-                            member this.DeserializeReply(message, parameters) =
-                                innerFormatter.DeserializeReply(message, parameters) }
-                member this.ApplyDispatchBehavior(description:OperationDescription, runtime:DispatchOperation) =
-                    if (runtime.Formatter = null)
-                    then innerFormatter.ApplyDispatchBehavior(description, runtime)
-                    let innerFormatter = runtime.Formatter
-                    runtime.Formatter <- 
-                        { new IDispatchMessageFormatter with
-                            member this.DeserializeRequest(message, parameters) =
-                                deserializeRequest innerFormatter message
-                                |> Array.iteri (fun i inParam -> parameters.[i] <- inParam)
-                            member this.SerializeReply(messageVersion, parameters, result) =
-                                innerFormatter.SerializeReply(messageVersion, parameters, result) }
-                member this.Validate(description) = innerFormatter.Validate(description) }
+        { new IOperationBehavior with
+            member this.AddBindingParameters(description, bpc) = 
+                innerFormatter.AddBindingParameters(description, bpc)
+            member this.ApplyClientBehavior(description:OperationDescription, runtime:ClientOperation) =             
+                if (runtime.Formatter = null)
+                then innerFormatter.ApplyClientBehavior(description, runtime)
+                let innerFormatter = runtime.Formatter
+                runtime.Formatter <- 
+                    { new IClientMessageFormatter with
+                        member this.SerializeRequest(messageVersion, parameters) =
+                            serializeRequest innerFormatter parameters
+                        member this.DeserializeReply(message, parameters) =
+                            innerFormatter.DeserializeReply(message, parameters) }
+            member this.ApplyDispatchBehavior(description:OperationDescription, runtime:DispatchOperation) =
+                if (runtime.Formatter = null)
+                then innerFormatter.ApplyDispatchBehavior(description, runtime)
+                let innerFormatter = runtime.Formatter
+                runtime.Formatter <- 
+                    { new IDispatchMessageFormatter with
+                        member this.DeserializeRequest(message, parameters) =
+                            deserializeRequest innerFormatter message
+                            |> Array.iteri (fun i inParam -> parameters.[i] <- inParam)
+                        member this.SerializeReply(messageVersion, parameters, result) =
+                            innerFormatter.SerializeReply(messageVersion, parameters, result) }
+            member this.Validate(description) = 
+                innerFormatter.Validate(description) }
+        |> operationDescription.Behaviors.Add
 
-        // check there isn't already...
-        operationDescription.Behaviors
-        |> Seq.tryFind (fun ob -> ob.GetType() = customFormatterBehavior.GetType())
-        |> Option.isNone
-        |> function
-            | true -> raise (InvalidOperationException("Could not find DataContractFormatter or XmlSerializer on the contract"))
-            | false -> ()
 
-        operationDescription.Behaviors.Add(customFormatterBehavior)
+    let createBaseEndpoint (contractType:Type) = 
+        contractType
+        |> Utility.getCustomAttribute<PolicyAttribute> 
+        |> function 
+            policyAttribute -> 
+                (ContractDescription.GetContract(contractType), 
+                    policyAttribute.Binding, 
+                    contractType |> policyAttribute.EndpointAddress |> EndpointAddress)
+                |> ServiceEndpoint
+                |> function 
+                    endpoint ->
+                        match policyAttribute.CustomRequestSerializer with
+                        | Some (serializeRequest, deserializeRequest) ->
+                            endpoint.Contract.Operations
+                            |> Seq.iter 
+                                (replaceFormatterBehavior 
+                                    serializeRequest deserializeRequest)
+                        | None -> ()
+                        endpoint
+
 
     let applyDispatchEndpointBehavior 
             (runtimeUpdater:DispatchRuntime->DispatchRuntime) 
@@ -121,25 +146,6 @@ module PolicyEndpoint =
         |> endpoint.Behaviors.Add
         endpoint
         
-    let createBase (contractType:Type) = 
-        contractType
-        |> Utility.getCustomAttribute<PolicyAttribute> 
-        |> function 
-            policyAttribute -> 
-                (ContractDescription.GetContract(contractType), 
-                    policyAttribute.Binding, 
-                    contractType
-                    |> policyAttribute.EndpointAddress 
-                    |> EndpointAddress)
-                |> ServiceEndpoint
-                |> function 
-                    endpoint ->
-                        match policyAttribute.CustomRequestSerializer with
-                        | Some (serializeRequest, deserializeRequest) ->
-                            endpoint.Contract.Operations
-                            |> Seq.iter (replaceFormatterBehavior serializeRequest deserializeRequest))
-                        | None -> ()
-                        endpoint
 
     let createDispatchEndpoint (contractType:Type) (container:IUnityContainer)
             (getInstance:unit->obj) = 
@@ -161,17 +167,15 @@ module PolicyEndpoint =
             |> function
                 | Some selector -> 
                     { new IDispatchOperationSelector with 
-                        member this.SelectOperation(message) = 
-                            let operation = message.Headers.Action
-                            printfn "Selected operation is %s for %A" operation message
-                            operation } 
+                        member this.SelectOperation(message) = selector message } 
                     |> function 
-                        selector -> runtime.OperationSelector <- selector
+                        operationSelector -> 
+                            runtime.OperationSelector <- operationSelector 
                 | None -> ()
             runtime
 
         contractType
-        |> createBase 
+        |> createBaseEndpoint 
         |> applyDispatchEndpointBehavior runtimeUpdater
                 
     let createClientEndpoint (contractType:Type) (container:IUnityContainer) = 
@@ -185,5 +189,5 @@ module PolicyEndpoint =
             runtime
 
         contractType
-        |> createBase 
+        |> createBaseEndpoint 
         |> applyClientEndpointBehavior runtimeUpdater
