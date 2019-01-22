@@ -41,12 +41,6 @@ module ComponentRegistration =
         let host = new ServiceHost(implementationType, endpoint.Address.Uri)
         host.AddServiceEndpoint(endpoint)
 
-        host.ChannelDispatchers
-        |> Seq.iter (fun dp -> printfn "dispatcher listener = %s" (dp.Listener.State.ToString()))
-
-        host.Description.Endpoints
-        |> Seq.iter (fun ep -> printfn "binding name = %s" ep.Binding.Name)
-
         container.RegisterInstance<ServiceHost>(
             sprintf "Host_for_<%s::%s>" implementationType.Namespace implementationType.Name, 
             host)
