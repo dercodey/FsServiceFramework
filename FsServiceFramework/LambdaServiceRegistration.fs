@@ -73,9 +73,6 @@ module LambdaServiceRegistration =
                         member this.GetInstance (ic) = box (LambdaService())
                         member this.GetInstance (ic, _) = box (LambdaService())
                         member this.ReleaseInstance (_, _) = () }
-                let (_, dispatchMessageInspector) = 
-                    CallContextOperations.createInspectors container
-                dr.MessageInspectors.Add dispatchMessageInspector
 
                 dr.OperationSelector <- 
                     { new IDispatchOperationSelector with 

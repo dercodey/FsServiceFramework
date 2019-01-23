@@ -140,12 +140,11 @@ module PolicyEndpoint =
     let createDispatchEndpoint (contractType:Type) (container:IUnityContainer)
             (getInstance:unit->obj) =
         contractType
-        |> createBaseEndpoint 
+        |> createBaseEndpoint
         |> applyEndpointBehavior id 
             (fun runtime -> 
-                container
-                |> CallContextOperations.createInspectors |> snd
-                |> runtime.MessageInspectors.Add
+                container.ResolveAll<IDispatchMessageInspector>()
+                |> Seq.iter runtime.MessageInspectors.Add
 
                 { new IInstanceProvider with // add instance provider to resolve from unity container
                     member this.GetInstance (ic) = this.GetInstance(ic, null)
@@ -168,13 +167,11 @@ module PolicyEndpoint =
                 
     let createClientEndpoint (contractType:Type) (container:IUnityContainer) = 
         contractType
-        |> createBaseEndpoint 
+        |> createBaseEndpoint
         |> applyEndpointBehavior 
             (fun runtime ->
-                container
-                |> CallContextOperations.createInspectors 
-                |> function
-                    (client, dispatch) ->
-                        runtime.ClientMessageInspectors.Add client
-                        runtime.CallbackDispatchRuntime.MessageInspectors.Add dispatch
+                container.ResolveAll<IClientMessageInspector>()
+                |> Seq.iter runtime.ClientMessageInspectors.Add
+                container.ResolveAll<IDispatchMessageInspector>()
+                |> Seq.iter runtime.CallbackDispatchRuntime.MessageInspectors.Add
                 runtime) id
