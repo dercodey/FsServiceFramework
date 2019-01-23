@@ -7,6 +7,10 @@ open Trending.Services
 
 open Worklist.Contracts
 open Worklist.Services
+
+open Import.Contracts
+open Import.Services.Impl
+
 open Unity
 open Unity.Interception.ContainerIntegration
 open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
@@ -75,6 +79,7 @@ let main argv =
     |> ComponentRegistration.registerRepositoryInstance<int, SiteTrendingSeries>(repository)
     |> ComponentRegistration.registerService_ typedefof<IWorklistManager> typedefof<WorklistManagerService>
     |> ComponentRegistration.registerService_ typedefof<IWorklistEngine> typedefof<WorklistEngineService>
+    |> ComponentRegistration.registerService_ typedefof<IImportManager> typedefof<ImportManager>
     |> Hosting.startServices
     Console.ReadLine() |> ignore
 

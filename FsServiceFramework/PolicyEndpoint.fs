@@ -43,6 +43,13 @@ type RestPolicyAttribute() =
 [<AttributeUsage(AttributeTargets.Interface)>]
 type DicomPolicyAttribute() =
     inherit PolicyAttribute(NetTcpBinding())
+    override this.CustomRequestSerializer =
+        let requestSerializer (innerFormatter:IClientMessageFormatter) (p:obj[]) =
+            innerFormatter.SerializeRequest(MessageVersion.Default, p)
+        let requestDeserializer (innerFormatter:IDispatchMessageFormatter) (msg:Message) =
+            let p = Unchecked.defaultof<obj[]>
+            innerFormatter.DeserializeRequest(msg, p); p
+        Some (requestSerializer, requestDeserializer)
 
 [<AttributeUsage(AttributeTargets.Interface)>]
 type StreamRenderPolicyAttribute() =

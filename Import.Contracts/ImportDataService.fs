@@ -9,17 +9,17 @@ open FsServiceFramework
 [<DataContract>]
 type ImportImage() =
 
-    [<DataMember(EmitDefaultValue=false, IsRequired=true)>] 
+    [<DataMember>] 
     member val Label = String.Empty with get, set
 
-    [<DataMember(EmitDefaultValue=false, IsRequired=true)>] 
+    [<DataMember>] 
     member val Width = 1 with get, set
 
-    [<DataMember(EmitDefaultValue=false, IsRequired=true)>] 
+    [<DataMember>] 
     member val Height = 1 with get, set
 
-    [<DataMember(EmitDefaultValue=false, IsRequired=true)>] 
-    member val Pixels = [| 0uy |] with get, set
+    [<DataMember>] 
+    member val Pixels = 0uy with get, set
 
 [<ServiceContract>]
 [<DicomPolicy>]

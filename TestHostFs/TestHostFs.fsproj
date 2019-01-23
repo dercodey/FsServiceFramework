@@ -9,10 +9,11 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>TestHostFs</RootNamespace>
     <AssemblyName>TestHostFs</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
     <Name>TestHostFs</Name>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -126,6 +127,16 @@
     <ProjectReference Include="..\FsServiceFramework\FsServiceFramework.fsproj">
       <Name>FsServiceFramework</Name>
       <Project>{a2345bf0-8138-45da-babb-4a551a71cf5c}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Import.Contracts\Import.Contracts.fsproj">
+      <Name>Import.Contracts</Name>
+      <Project>{1f0f7c25-4229-4763-ae9a-e16ed328b837}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Import.Services\Import.Services.fsproj">
+      <Name>Import.Services</Name>
+      <Project>{42e8aadd-52d9-414b-b6ce-1e6e67567fc3}</Project>
       <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\Trending\Trending.Contracts\Trending.Contracts.fsproj">

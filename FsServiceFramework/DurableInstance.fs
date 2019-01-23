@@ -17,13 +17,23 @@ type DurableInstanceContex = {
 module DurableInstance =
     let configureContainer (container:IUnityContainer) = 
         System.Diagnostics.Trace.Assert(container.Resolve<ServiceEndpoint>() <> null)
-        (typedefof<IInstanceProvider>,
+
+        let instanceProvider = 
             { new IInstanceProvider with // add instance provider to resolve from unity container
                 member this.GetInstance (ic) = this.GetInstance(ic, null)
                 member this.GetInstance (ic, msg) = 
-                    container.Resolve<ServiceEndpoint>()
-                    |> function endpoint -> endpoint.Contract.ContractType
-                    |> container.Resolve
-                member this.ReleaseInstance (_, _) = () })
+
+                    do printfn "Getting instance..."
+                    let contractType = 
+                        container.Resolve<ServiceEndpoint>()
+                        |> function endpoint ->                             
+                            endpoint.Contract.ContractType
+
+                    printfn "%s" contractType.FullName |> ignore
+                    let instance = container.Resolve(contractType)
+                    instance
+
+                member this.ReleaseInstance (_, _) = () }
+        (typedefof<IInstanceProvider>, instanceProvider)
         |> container.RegisterInstance 
             

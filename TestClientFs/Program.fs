@@ -2,12 +2,16 @@
 
 open FsServiceFramework
 open Trending.Contracts
+open Import.Contracts
+
 open Unity
 open System.ServiceModel.Dispatcher
 open Unity.Injection
 
 [<EntryPoint>]
 let main argv = 
+    System.Threading.Thread.Sleep(5)
+
     (new UnityContainer())
         .RegisterInstance<TraceContext>(TraceContext(Guid.NewGuid(), 1)) 
         .RegisterInstance<TestingContext>(TestingContext(VolatileTest (Guid.NewGuid())))
@@ -15,6 +19,18 @@ let main argv =
         container -> 
             use proxyManager = new ProxyManager(container)
             let ipm = proxyManager :> IProxyManager
+
+            let imageEchoAndCall () =
+                use proxyContext = ipm.GetTransientContext()
+                let proxy = ipm.GetProxy<IImportManager>()
+
+                let testImage = 
+                    ImportImage(Label = "testImage", 
+                        Width = 2, Height = 2, Pixels = 1uy) // [|0uy;1uy;1uy;0uy |])
+                proxy.EchoImage testImage
+
+            let echoImage = imageEchoAndCall ()
+            printfn "%A" echoImage
 
             let proxyAndCall (seriesId:int) =
                 use proxyContext = ipm.GetTransientContext()
