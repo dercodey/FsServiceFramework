@@ -119,65 +119,50 @@ module PolicyEndpoint =
                                 (replaceFormatterBehavior 
                                     serializeRequest deserializeRequest)
                         | None -> ()
-                        endpoint
+                        endpoint        
 
-
-    let applyEndpointBehavior 
-            (clientRuntimeUpdater:ClientRuntime->ClientRuntime) 
-            (dispatchRuntimeUpdater:DispatchRuntime->DispatchRuntime) 
-            (endpoint:ServiceEndpoint) =
-        { new IEndpointBehavior with 
-            member this.ApplyClientBehavior (_, clientRuntime) = 
-                clientRuntimeUpdater clientRuntime |> ignore
-            member this.ApplyDispatchBehavior (_, endpointDispatcher) = 
-                dispatchRuntimeUpdater endpointDispatcher.DispatchRuntime |> ignore
-            member this.AddBindingParameters (_, _) = ()
-            member this.Validate _ = () }
-        |> endpoint.Behaviors.Add
-        endpoint
-        
-
-    let createDispatchEndpoint (contractType:Type) (container:IUnityContainer)
-            (getInstance:unit->obj) =
+    let createDispatchEndpoint (contractType:Type) (container:IUnityContainer)=
         contractType
         |> createBaseEndpoint
         |> function 
             endpoint -> 
-                container.RegisterInstance<ServiceEndpoint>(endpoint) |> ignore
-                Instance.configureContainer container |> ignore
                 endpoint
-        |> applyEndpointBehavior id 
-            (fun runtime -> 
-                container.ResolveAll<IDispatchMessageInspector>()
-                |> Seq.iter runtime.MessageInspectors.Add
+                |> container.RegisterInstance<ServiceEndpoint>
+                |> DurableInstance.configureContainer |> ignore
 
-                container.Resolve<IInstanceProvider>()
-                |> function provider -> runtime.InstanceProvider <- provider
-
-                contractType
-                |> Utility.getCustomAttribute<PolicyAttribute> 
-                |> function policyAttribute -> policyAttribute.CustomOperationSelector
-                |> function
-                    | Some selector -> 
-                        { new IDispatchOperationSelector with 
-                            member this.SelectOperation(message) = selector message } 
-                        |> function 
-                            operationSelector -> 
-                                runtime.OperationSelector <- operationSelector 
-                    | None -> ()
-                runtime)
+                { new IEndpointBehavior with 
+                    member this.ApplyClientBehavior (_, _) = ()
+                    member this.ApplyDispatchBehavior (_, endpointDispatcher) = 
+                        let runtime = endpointDispatcher.DispatchRuntime
+                        container.ResolveAll<IDispatchMessageInspector>()
+                        |> Seq.iter runtime.MessageInspectors.Add
+                        container.Resolve<IInstanceProvider>()
+                        |> function provider -> runtime.InstanceProvider <- provider
+                        container.ResolveAll<IDispatchOperationSelector>()
+                        |> Seq.tryHead
+                        |> function
+                            | Some operationSelector -> 
+                                runtime.OperationSelector <- operationSelector  
+                            | None ->  ()
+                    member this.AddBindingParameters (_, _) = ()
+                    member this.Validate _ = () }
+                |> endpoint.Behaviors.Add
+                endpoint
                 
     let createClientEndpoint (contractType:Type) (container:IUnityContainer) = 
         contractType
         |> createBaseEndpoint
-        |> function 
-            endpoint -> 
-                container.RegisterInstance<ServiceEndpoint>(endpoint) |> ignore
+        |> function
+            endpoint ->                
+                { new IEndpointBehavior with 
+                    member this.ApplyClientBehavior (_, runtime) = 
+                        container.ResolveAll<IClientMessageInspector>()
+                        |> Seq.iter runtime.ClientMessageInspectors.Add
+                        container.ResolveAll<IDispatchMessageInspector>()
+                        |> Seq.iter runtime.CallbackDispatchRuntime.MessageInspectors.Add
+                    member this.ApplyDispatchBehavior (_, _) = ()
+
+                    member this.AddBindingParameters (_, _) = ()
+                    member this.Validate _ = () }
+                |> endpoint.Behaviors.Add
                 endpoint
-        |> applyEndpointBehavior 
-            (fun runtime ->
-                container.ResolveAll<IClientMessageInspector>()
-                |> Seq.iter runtime.ClientMessageInspectors.Add
-                container.ResolveAll<IDispatchMessageInspector>()
-                |> Seq.iter runtime.CallbackDispatchRuntime.MessageInspectors.Add
-                runtime) id

@@ -15,20 +15,20 @@ open Unity.Interception.Interceptors.InstanceInterceptors.InterfaceInterception
 [<EntryPoint>]
 let main argv = 
 
-    let da = { new ITrendingDataAccess with
-                member this.GetTrendingSeries(seriesId: int): SiteTrendingSeries = 
-                    raise (System.NotImplementedException())
-                member this.UpdateTrendingSeries(series: SiteTrendingSeries): unit = 
-                    raise (System.NotImplementedException()) }
+    //let da = { new ITrendingDataAccess with
+    //            member this.GetTrendingSeries(seriesId: int): SiteTrendingSeries = 
+    //                raise (System.NotImplementedException())
+    //            member this.UpdateTrendingSeries(series: SiteTrendingSeries): unit = 
+    //                raise (System.NotImplementedException()) }
 
-    let container = new UnityContainer()
-    container.RegisterType(typedefof<ITrendingDataAccess>, da.GetType(),
-            Interceptor<InterfaceInterceptor>(),
-            (Utility.unityInterceptionBehavior (fun input inner -> 
-                use opId = { new IDisposable with member this.Dispose() = () }
-                inner input) |> InterceptionBehavior)) |> ignore
+    //let container = new UnityContainer()
+    //container.RegisterType(typedefof<ITrendingDataAccess>, da.GetType(),
+    //        Interceptor<InterfaceInterceptor>(),
+    //        (Utility.unityInterceptionBehavior (fun input inner -> 
+    //            use opId = { new IDisposable with member this.Dispose() = () }
+    //            inner input) |> InterceptionBehavior)) |> ignore
 
-    let getDa = container.Resolve<ITrendingDataAccess>()
+    //let getDa = container.Resolve<ITrendingDataAccess>()
 
     // id value for testing
     let seriesId = 1    

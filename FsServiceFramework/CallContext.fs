@@ -37,7 +37,8 @@ module CallContextOperations =
             |> Seq.map (getContextFromHeader headers)
             |> Seq.map (fun uo -> container.RegisterInstance(uo.GetType(), uo))
 
-    let registerInspectors (container:IUnityContainer) : IUnityContainer =
+    // container can be top-level (i.e. no need for endpoint or policy registrations
+    let configureContainer (container:IUnityContainer) : IUnityContainer =        
         (typedefof<IClientMessageInspector>,
             { new IClientMessageInspector with
                 member this.BeforeSendRequest (request, _) = updateAllHeaders container |> ignore; null
