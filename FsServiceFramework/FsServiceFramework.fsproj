@@ -56,9 +56,9 @@
     <Compile Include="Logging.fs" />
     <Compile Include="CallContext.fs" />
     <Compile Include="Nz2Testing.fs" />
+    <Compile Include="DurableInstance.fs" />
     <Compile Include="PolicyEndpoint.fs" />
     <Compile Include="Proxy.fs" />
-    <Compile Include="DurableInstance.fs" />
     <Compile Include="Hosting.fs" />
     <Compile Include="ComponentRegistration.fs" />
     <Compile Include="LambdaServiceRegistration.fs" />

@@ -30,6 +30,7 @@ type ProxyManager(container:IUnityContainer) =
     member x.GetFactory<'contract> () =
         let createChannelFactory () = 
             let endpoint = PolicyEndpoint.createClientEndpoint typedefof<'contract> container
+
             let factory = new ChannelFactory<'contract>(endpoint)
             printfn "factory endpoint name = %s" factory.Endpoint.Binding.Name
             factory

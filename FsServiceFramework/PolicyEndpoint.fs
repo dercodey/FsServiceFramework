@@ -141,16 +141,18 @@ module PolicyEndpoint =
             (getInstance:unit->obj) =
         contractType
         |> createBaseEndpoint
+        |> function 
+            endpoint -> 
+                container.RegisterInstance<ServiceEndpoint>(endpoint) |> ignore
+                Instance.configureContainer container |> ignore
+                endpoint
         |> applyEndpointBehavior id 
             (fun runtime -> 
                 container.ResolveAll<IDispatchMessageInspector>()
                 |> Seq.iter runtime.MessageInspectors.Add
 
-                { new IInstanceProvider with // add instance provider to resolve from unity container
-                    member this.GetInstance (ic) = this.GetInstance(ic, null)
-                    member this.GetInstance (ic, _) = getInstance()
-                    member this.ReleaseInstance (_, _) = () }
-                |> function provider -> runtime.InstanceProvider <- provider                
+                container.Resolve<IInstanceProvider>()
+                |> function provider -> runtime.InstanceProvider <- provider
 
                 contractType
                 |> Utility.getCustomAttribute<PolicyAttribute> 
@@ -168,6 +170,10 @@ module PolicyEndpoint =
     let createClientEndpoint (contractType:Type) (container:IUnityContainer) = 
         contractType
         |> createBaseEndpoint
+        |> function 
+            endpoint -> 
+                container.RegisterInstance<ServiceEndpoint>(endpoint) |> ignore
+                endpoint
         |> applyEndpointBehavior 
             (fun runtime ->
                 container.ResolveAll<IClientMessageInspector>()

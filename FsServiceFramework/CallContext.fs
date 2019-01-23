@@ -49,16 +49,7 @@ module CallContextOperations =
                 member this.AfterReceiveRequest (request, _, _) = updateAllContainerContexts request.Headers container |> ignore; null
                 member this.BeforeSendReply (reply, _) = updateAllHeaders container |> ignore })
         |> container.RegisterInstance
-
-#if RETURN_TUPLE
-        (   { new IClientMessageInspector with
-                member this.BeforeSendRequest (request, _) = updateAllHeaders container |> ignore; null
-                member this.AfterReceiveReply (_, _) = () },
-            { new IDispatchMessageInspector with  
-                member this.AfterReceiveRequest (request, _, _) = updateAllContainerContexts request.Headers container |> ignore; null
-                member this.BeforeSendReply (reply, _) = updateAllHeaders container |> ignore })
-#endif
-
+        
 [<DataContract>]
 type TraceContext(correlationId:Guid, sequenceNumber:int) =
     inherit CallContextBase()

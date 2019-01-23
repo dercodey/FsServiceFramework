@@ -16,8 +16,11 @@ module ComponentRegistration =
     
     let registerService_ (contractType:Type) (implementationType:Type) (container:IUnityContainer) : IUnityContainer =
 
+        let svcContainer = container.CreateChildContainer()
+
         let proxyManager = container.Resolve<IProxyManager>()
 
+#if USE_POLICY
         (fun input inner -> 
             use opId = proxyManager.GetTransientContext()
             inner input)
@@ -37,8 +40,8 @@ module ComponentRegistration =
             result)
         |> Utility.unityInterceptionBehavior
         |> container.RegisterInstance<IInterceptionBehavior> |> ignore
-
-        container.RegisterType(contractType, implementationType,    // this registers the proxy and performance Unity interceptions
+#endif
+        svcContainer.RegisterType(contractType, implementationType,    // this registers the proxy and performance Unity interceptions
             Interceptor<InterfaceInterceptor>(),             
             (Utility.unityInterceptionBehavior (fun input inner -> 
                 use opId = proxyManager.GetTransientContext()
@@ -57,17 +60,19 @@ module ComponentRegistration =
 
         // create and configure the endpoint for unity instance construction
         let endpoint = 
-            let instanceChildContainer = lazy ( container.CreateChildContainer() )
+            //let instanceChildContainer = lazy ( container.CreateChildContainer() )
             PolicyEndpoint.createDispatchEndpoint contractType 
-                container (fun _ -> instanceChildContainer.Value.Resolve(contractType))
+                svcContainer (fun _ -> svcContainer.Resolve(contractType))
 
         // create the host and add the configured endpoint
         let host = new ServiceHost(implementationType, endpoint.Address.Uri)
         host.AddServiceEndpoint(endpoint)
+        host.Open() |> ignore
 
-        container.RegisterInstance<ServiceHost>(
+        svcContainer.RegisterInstance<ServiceHost>(
             sprintf "Host_for_<%s::%s>" implementationType.Namespace implementationType.Name, 
-            host)
+            host) |> ignore
+        container // return parent, to allow fluent registration to continue
 
     let registerFunction<'contract, 'implementation> (container:IUnityContainer) : IUnityContainer =
         let contractType = typedefof<'contract>
