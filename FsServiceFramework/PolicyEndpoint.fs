@@ -63,6 +63,7 @@ type StreamRenderPolicyAttribute() =
         Some (requestSerializer, requestDeserializer)
 
 module PolicyEndpoint = 
+    open System.ServiceModel.Configuration
 
     let replaceFormatterBehavior 
             (serializeRequest:IClientMessageFormatter->obj[]->Message)
@@ -113,6 +114,14 @@ module PolicyEndpoint =
         |> Utility.getCustomAttribute<PolicyAttribute> 
         |> function 
             policyAttribute -> 
+#if TEST_TRANSFERMODE
+                let customBinding = CustomBinding(policyAttribute.Binding)
+                let elements = customBinding.Elements
+                let bindingContext = BindingContext(customBinding, BindingParameterCollection())
+                let tcp = elements.[3] :> obj :?> TcpTransportBindingElement
+                tcp.TransferMode <- TransferMode.StreamedRequest
+                let reply0channel = elements.[0].BuildChannelFactory<IRequestChannel>(bindingContext)
+#endif
                 (ContractDescription.GetContract(contractType), 
                     policyAttribute.Binding, 
                     contractType |> policyAttribute.EndpointAddress |> EndpointAddress)

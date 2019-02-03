@@ -13,6 +13,23 @@ using Microsoft.FSharp.Collections;
 namespace FsServiceFramework.UnitTest
 {
     [TestClass]
+    public class MyTestClass
+    {
+#if true
+        [TestMethod]
+        public void MyTestMethod()
+        {
+        }
+        private int myVar;
+        public int MyProperty
+        {
+            get { return myVar; }
+            set { myVar = value; }
+        }
+    }
+#endif
+    }
+    [TestClass]
     public class HostingUnitTest
     {
         [TestMethod]

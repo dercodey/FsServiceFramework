@@ -2,6 +2,8 @@
 
 open System
 open System.Data.Entity
+open System.Net.Http
+open System.Data.Entity
 
 type IKeyService =
     abstract GetKey<'key, 'entity when 'key : comparison> : 'entity -> 'key
@@ -30,6 +32,12 @@ type DbSetRepository<'key, 'entity
         member this.Update (entity:'entity) =
             entity
 
+type DbCmd<'key, 'entity> =
+| Get of 'key * AsyncReplyChannel<'entity>
+| Create of 'entity * AsyncReplyChannel<bool>
+| Delete of 'key * AsyncReplyChannel<bool>
+| Update of 'entity * AsyncReplyChannel<bool>
+
 type VolatileRepository<'key, 'entity 
         when 'key : comparison 
         and 'entity: not struct>
@@ -37,21 +45,60 @@ type VolatileRepository<'key, 'entity
 
     let mutable entityMap = Map.empty<'key, 'entity>
 
+
+    let mailboxFunc (init:'state) = 
+        new MailboxProcessor<('state->('reply*'state))*AsyncReplyChannel<'reply>> (fun mailbox -> 
+            let rec loop (state:'state)= async { 
+                let! (func, replyChannel) = mailbox.Receive()
+                let (reply, next) = state |> func
+                replyChannel.Reply(reply)
+                return! next |> loop }
+            loop init)
+    do 
+        let mb = mailboxFunc 0
+        mb.Start()
+        let createReply (replyChannel:AsyncReplyChannel<int>) =
+            ((fun x -> (x + 2, x + 2)), replyChannel)
+        mb.PostAndReply<int> createReply |> ignore
+
+
+    let mailbox = 
+        new MailboxProcessor<DbCmd<'key,'entity>> (fun mailbox -> 
+            let rec loop (map:Map<'key,'entity>)= async { 
+                let! cmd = mailbox.Receive()
+                let updatedMap =
+                    match cmd with
+                    | Get (key,reply) -> 
+                        reply.Reply(map.Item key)
+                        map
+                    | Create (entity,reply) -> 
+                        let key = getKeyFunc entity in 
+                            try map |> Map.add key entity
+                            finally reply.Reply(true)               
+                    | Delete (key,reply) ->                                             
+                        try map |> Map.remove key
+                        finally reply.Reply(true)
+                    | Update (entity,reply) -> 
+                        let key = getKeyFunc entity in 
+                            try map
+                                |> Map.remove key 
+                                |> Map.add key entity
+                            finally reply.Reply(true)
+                return! loop map }
+            loop Map.empty<'key,'entity>)
+    do mailbox.Start()
+
     interface IRepository<'key, 'entity> with
         member this.Get (key:'key) = 
-            entityMap.Item key
+            (fun rc -> Get (key,rc)) |> mailbox.PostAndReply
         member this.Create (entity:'entity) = 
-            let key = getKeyFunc entity
-            entityMap <- entityMap.Add(key, entity)
+            (fun rc -> Create (entity,rc)) |> mailbox.PostAndReply
             entity
-        member this.Delete (entity:'entity) = 
+        member this.Delete (entity:'entity) =
             let key = getKeyFunc entity
-            entityMap <- entityMap.Remove(key)
-            true
+            (fun rc -> Delete (key,rc)) |> mailbox.PostAndReply
         member this.Update (entity:'entity) =
-            let key = getKeyFunc entity
-            entityMap <- entityMap.Remove(key)
-            entityMap <- entityMap.Add(key, entity)
+            (fun rc -> Update (entity,rc)) |> mailbox.PostAndReply
             entity
 
 type IUnitOfWork =
